@@ -14,8 +14,6 @@ This document outlines the design and guiding principles behind `medi`, a termin
 
 The goal is to provide a smooth path from idea to finished document, without leaving the command line.
 
----
-
 ## 2. Core Concepts
 
 The system is built around a few simple concepts:
@@ -32,8 +30,6 @@ The system is built around a few simple concepts:
 
 * **CLI Interface**
   The command-line interface is the only way to interact with `medi`. Built with `clap`, it exposes all functionality through clear commands and flags (e.g. `medi new`, `medi edit`).
-
----
 
 ## 3. High-Level Architecture & Workflow
 
@@ -70,9 +66,6 @@ The system is built around a few simple concepts:
 
 This structure keeps `main.rs` thin and focused, while keeping application logic modular and testable.
 
----
-
-
 ## 4. Guiding Principles
 
 These principles shape the design and usage of `medi`.
@@ -88,7 +81,5 @@ These principles shape the design and usage of `medi`.
 
 * **Zero-config startup**
   `medi` should be usable immediately after install. Sensible defaults mean you don’t need to configure anything to get started (but you can if you want to).
-
----
 
 
