@@ -16,11 +16,10 @@ clap_mangen = "0.2.29"
 colored = "3.0.0"
 thiserror = "2.0.12"
 anyhow = "1.0.98"
-chrono = "0.4.41"
-serde_yaml = "0.9.33"
 serde = { version = "1.0.219", features = ["derive"] }
 dialoguer = "0.11.0"
-regex = "1.11.1"
+edit = "0.1.5"
+sled = "0.34.7"
 
 [dev-dependencies]
 serial_test = "3.2.0"
