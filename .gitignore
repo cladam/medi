@@ -1,0 +1,10 @@
+# Generated files
+/target/
+# Cargo.lock is not needed for libraries
+# but is needed for binaries
+# and examples to ensure reproducible builds.
+# Uncomment the following line if you want to ignore Cargo.lock for libraries
+# Cargo.lock
+
+# RustRover
+.idea/
