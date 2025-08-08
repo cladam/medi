@@ -1,4 +1,4 @@
-# ADR 001: Use `sled` for Key-Value Storage
+# ADR 01: Use `sled` for Key-Value Storage
 
 * **Status**: Accepted
 * **Date**: 2025-08-08
