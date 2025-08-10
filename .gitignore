@@ -8,3 +8,6 @@
 
 # RustRover
 .idea/
+
+# medi
+medi_db/
