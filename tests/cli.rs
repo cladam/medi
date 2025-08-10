@@ -1,23 +1,24 @@
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::process::Command;
 use tempfile::tempdir;
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 #[test]
 fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
     let temp_dir = tempdir()?;
     let db_path = temp_dir.path().join("test_db");
     let editor_script_path = temp_dir.path().join("mock_editor.sh");
+    
+    let source_script_path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
 
-    let script_content = r#"
-#!/usr/bin/env sh\n\
-# This mock editor script writes content to the file provided by `medi`.\n\
-# The file path is passed as the first argument ($1).\n\
-echo "\integration test content\" > \"$1\"\n";
-    "#;
-    fs::write(&editor_script_path, script_content)?;
+    // 3. Copy the script to the temporary directory.
+    fs::copy(source_script_path, &editor_script_path)?;
 
     #[cfg(unix)]
     {
