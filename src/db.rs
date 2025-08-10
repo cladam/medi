@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use crate::error::AppError;
 use sled::Db;
+use sled::Config;
 use std::{fs, str};
 
 // Helper function to open the database
@@ -20,21 +21,24 @@ pub fn open() -> Result<Db, AppError> {
 }
 
 // Corresponds to `medi new <key>`
-pub fn create_note(db: &Db, key: &str) -> Result<(), AppError> {
+pub fn create_note<F>(db: &Db, key: &str, editor_fn: F) -> Result<(), AppError>
+where
+    F: for<'a> FnOnce(&'a str) -> Result<String, std::io::Error>,
+{
     if db.contains_key(key)? {
         return Err(AppError::KeyExists(key.to_string()));
     }
 
-    let value = edit::edit("")?; // Opens blank editor
+    // Call the provided editor function instead of `edit::edit` directly.
+    let value = editor_fn("")?;
 
-    // Don't save if the user didn't write anything
     if value.trim().is_empty() {
         println!("Note creation cancelled (empty content).");
         return Ok(());
     }
 
     db.insert(key, value.as_bytes())?;
-    db.flush()?; // Ensure data is saved to disk
+    db.flush()?;
     Ok(())
 }
 
@@ -74,4 +78,48 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
     db.remove(key)?;
     db.flush()?; // Ensure data is saved to disk
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*; // Import everything from the parent module (db)
+
+    #[test]
+    fn test_create_note_success() {
+        // 1. Use a temporary database for this test.
+        let config = Config::new().temporary(true);
+        let db = config.open().expect("Failed to open temporary db");
+        let key = "test-key";
+
+        fn mock_editor(_: &str) -> Result<String, std::io::Error> {
+            Ok("Mock note content".to_string())
+        }
+        //let mock_editor = |_| Ok("Mock note content".to_string());
+
+        // 3. Call the function with the mock editor.
+        let result = create_note(&db, key, mock_editor);
+        assert!(result.is_ok());
+
+        // 4. Verify that the note was actually saved in the database.
+        let saved_value = db.get(key).unwrap().unwrap();
+        assert_eq!(saved_value, "Mock note content".as_bytes());
+    }
+
+    #[test]
+    fn test_create_note_key_exists() {
+        // Setup a temporary db with a pre-existing key.
+        let config = Config::new().temporary(true);
+        let db = config.open().expect("Failed to open temporary db");
+        let key = "existing-key";
+        db.insert(key, "old value").unwrap();
+
+        fn mock_editor(_: &str) -> Result<String, std::io::Error> {
+            Ok("Mock note content".to_string())
+        }
+        //let mock_editor = |_| Ok("".to_string()); // Editor won't even be called
+
+        // Call the function and assert that it returns the correct error.
+        let result = create_note(&db, key, mock_editor);
+        assert!(matches!(result, Err(AppError::KeyExists(_))));
+    }
 }

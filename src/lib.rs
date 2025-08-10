@@ -13,7 +13,7 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
     match cli.command {
         Commands::New { key } => {
             // Call the appropriate function from the `db` module
-            db::create_note(&db, &key)?;
+            db::create_note(&db, &key, |s| edit::edit(s))?;
             println!("Successfully created note: '{}'", key);
         }
         Commands::Edit { key } => {
