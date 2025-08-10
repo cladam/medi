@@ -12,7 +12,7 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
     let editor_script_path = temp_dir.path().join("mock_editor.sh");
 
     let script_content = r#"
-#!/bin/sh
+#!/usr/bin/env sh
 # This mock editor script writes content to the file provided by `medi`.
 # The file path is passed as the first argument ($1).
 echo "integration test content" > "$1"
