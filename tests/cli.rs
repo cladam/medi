@@ -12,10 +12,10 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
     let editor_script_path = temp_dir.path().join("mock_editor.sh");
 
     let script_content = r#"
-#!/usr/bin/env sh
-# This mock editor script writes content to the file provided by `medi`.
-# The file path is passed as the first argument ($1).
-echo "integration test content" > "$1"
+#!/usr/bin/env sh\n\
+# This mock editor script writes content to the file provided by `medi`.\n\
+# The file path is passed as the first argument ($1).\n\
+echo "\integration test content\" > \"$1\"\n";
     "#;
     fs::write(&editor_script_path, script_content)?;
 
