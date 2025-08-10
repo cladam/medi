@@ -1,10 +1,22 @@
+use std::path::PathBuf;
 use crate::error::AppError;
 use sled::Db;
-use std::str;
+use std::{fs, str};
 
 // Helper function to open the database
 pub fn open() -> Result<Db, AppError> {
-    sled::open("medi_db").map_err(AppError::from)
+    let home_dir = dirs::home_dir().ok_or_else(|| {
+        AppError::Io(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Could not find home directory",
+        ))
+    })?;
+
+    let db_dir = home_dir.join(".medi");
+    fs::create_dir_all(&db_dir)?;
+
+    let db_path = db_dir.join("medi_db");
+    sled::open(db_path).map_err(AppError::from)
 }
 
 // Corresponds to `medi new <key>`
