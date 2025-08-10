@@ -1,22 +1,28 @@
-use std::path::PathBuf;
 use crate::error::AppError;
 use sled::Db;
-use sled::Config;
-use std::{fs, str};
+use std::{env, fs, str};
+use std::path::PathBuf;
 
 // Helper function to open the database
 pub fn open() -> Result<Db, AppError> {
-    let home_dir = dirs::home_dir().ok_or_else(|| {
-        AppError::Io(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "Could not find home directory",
-        ))
-    })?;
+    let db_path = match env::var("MEDI_DB_PATH") {
+        Ok(db_path) => PathBuf::from(db_path),
+        Err(_) => {
+            // Use the home directory.
+            let home_dir = dirs::home_dir().ok_or_else(|| {
+                AppError::Io(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Could not find home directory",
+                ))
+            })?;
+            home_dir.join(".medi").join("medi_db")
+        }
+    };
 
-    let db_dir = home_dir.join(".medi");
-    fs::create_dir_all(&db_dir)?;
-
-    let db_path = db_dir.join("medi_db");
+    // Ensure the parent directory exists.
+    if let Some(parent) = db_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
     sled::open(db_path).map_err(AppError::from)
 }
 
@@ -83,6 +89,7 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
 #[cfg(test)]
 mod tests {
     use super::*; // Import everything from the parent module (db)
+    use sled::Config;
 
     #[test]
     fn test_create_note_success() {
