@@ -44,7 +44,14 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         //     colours::success(&format!("Successfully created note: '{}'", key));
         // }
         Commands::Edit { key } => {
-            // TODO: Call db::edit_note and print a success message
+            let existing_content = db::get_note(&db, &key)?;
+            let updated_content = edit::edit(existing_content)?;
+            if updated_content.trim().is_empty() {
+                colours::warn("Note update cancelled (empty content).");
+                return Ok(());
+            }
+            db::update_note(&db, &key, &updated_content)?;
+            colours::success(&format!("Successfully updated note: '{}'", key));
         }
         Commands::Get { key } => {
             let content = db::get_note(&db, &key)?;

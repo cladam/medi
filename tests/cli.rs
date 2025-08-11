@@ -152,3 +152,33 @@ fn test_list_empty() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicate::str::contains("No notes found."));
     Ok(())
 }
+#[test]
+fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // SETUP: Create an initial note using the `-m` flag.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["new", "edit-me", "-m", "initial content"])
+        .assert()
+        .success();
+
+    // TEST: Run `medi edit`. The mock editor will overwrite the content.
+    Command::cargo_bin("medi")?
+        .env("EDITOR", &harness.editor_script_path) // This script provides the new content
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["edit", "edit-me"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Successfully updated note"));
+
+    // VERIFY: Use `medi get` to confirm the content has changed.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "edit-me"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("integration test content")); // This is from mock_editor.sh
+
+    Ok(())
+}

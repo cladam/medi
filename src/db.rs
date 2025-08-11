@@ -95,6 +95,17 @@ pub fn edit_note(db: &Db, key: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Overwrites an existing note with new content.
+pub fn update_note(db: &Db, key: &str, new_content: &str) -> Result<(), AppError> {
+    if !db.contains_key(key)? {
+        return Err(AppError::KeyNotFound(key.to_string()));
+    }
+
+    db.insert(key, new_content.as_bytes())?;
+    db.flush()?;
+    Ok(())
+}
+
 // This function retrieves a note from the database by its key.
 // Corresponds to `medi get <key>`
 // It returns the note content as a String.
@@ -215,5 +226,20 @@ mod tests {
         let result = delete_note(&db, key);
         assert!(result.is_ok());
         assert!(!db.contains_key(key).unwrap());
+    }
+
+    #[test]
+    fn test_update_note() {
+        let config = Config::new().temporary(true);
+        let db = config.open().unwrap();
+        let key = "existing-note";
+        db.insert(key, "old content").unwrap();
+
+        let result = update_note(&db, key, "new content");
+        assert!(result.is_ok());
+
+        // Verify the content was updated
+        let updated_value = db.get(key).unwrap().unwrap();
+        assert_eq!(updated_value, "new content".as_bytes());
     }
 }
