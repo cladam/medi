@@ -25,7 +25,13 @@ pub enum Commands {
     /// List all notes.
     List,
     /// Delete a note with the specified key.
-    Delete { key: String },
+    Delete {
+        /// The key of the note to delete.
+        key: String,
+        /// Skip the confirmation prompt.
+        #[arg(long, short, action = clap::ArgAction::SetTrue)]
+        force: bool,
+    },
     /// Import notes from a file.
     Import { file: String },
     /// Export notes to a file.

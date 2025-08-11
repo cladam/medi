@@ -140,7 +140,7 @@ fn test_delete_command() -> Result<(), Box<dyn std::error::Error>> {
     // Delete the note
     harness
         .medi()
-        .args(["delete", "delete-me"])
+        .args(["delete", "delete-me", "--force"])
         .assert()
         .success()
         .stdout(predicate::str::contains("Successfully deleted note"));

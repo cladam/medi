@@ -2,6 +2,8 @@ mod cli;
 mod db;
 mod error;
 pub mod colours;
+
+use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
 use error::AppError;
 
@@ -34,11 +36,25 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 }
             }
         }
-        Commands::Delete { key } => {
-            if db::delete_note(&db, &key).is_ok() {
-                colours::success(&format!("Successfully deleted note: '{}'", key));
+        Commands::Delete { key, force } => {
+            let confirmed = if force {
+                true // If --force is used, we're automatically confirmed.
             } else {
-                colours::error(&format!("Failed to delete note: '{}'. It may not exist.", key));
+                // Use dialoguer to ask the user for confirmation.
+                Confirm::new()
+                    .with_prompt(format!("Are you sure you want to delete '{}'?", key))
+                    .default(false) // Default to "no" if the user just hits Enter.
+                    .interact()?
+            };
+
+            if confirmed {
+                if db::delete_note(&db, &key).is_ok() {
+                    colours::success(&format!("Successfully deleted note: '{}'", key));
+                } else {
+                    colours::error(&format!("Failed to delete note: '{}'. It may not exist.", key));
+                }
+            } else {
+                colours::warn("Deletion cancelled.");
             }
         }
         // The import/export commands can be implemented later
