@@ -1,6 +1,3 @@
-// tests/cli.rs
-
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -103,7 +100,6 @@ fn test_new_with_editor() -> Result<(), Box<dyn std::error::Error>> {
 fn test_core_list_and_delete_workflow() -> Result<(), Box<dyn std::error::Error>> {
     let harness = TestHarness::new();
 
-    // SETUP: Use the reliable `-m` flag to create notes.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .args(["new", "b-note", "-m", "b"])
@@ -115,7 +111,6 @@ fn test_core_list_and_delete_workflow() -> Result<(), Box<dyn std::error::Error>
         .assert()
         .success();
 
-    // TEST: `list` command for correctness and sorting.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .arg("list")
@@ -123,14 +118,12 @@ fn test_core_list_and_delete_workflow() -> Result<(), Box<dyn std::error::Error>
         .success()
         .stdout(predicate::str::is_match("(?s)a-note.*b-note").unwrap());
 
-    // TEST: `delete` command.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .args(["delete", "a-note", "--force"])
         .assert()
         .success();
 
-    // VERIFY: The note is gone.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .args(["get", "a-note"])
@@ -140,7 +133,6 @@ fn test_core_list_and_delete_workflow() -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
-/// Tests the user-friendly message for an empty database.
 #[test]
 fn test_list_empty() -> Result<(), Box<dyn std::error::Error>> {
     let harness = TestHarness::new();
@@ -156,14 +148,12 @@ fn test_list_empty() -> Result<(), Box<dyn std::error::Error>> {
 fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
     let harness = TestHarness::new();
 
-    // SETUP: Create an initial note using the `-m` flag.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .args(["new", "edit-me", "-m", "initial content"])
         .assert()
         .success();
 
-    // TEST: Run `medi edit`. The mock editor will overwrite the content.
     Command::cargo_bin("medi")?
         .env("EDITOR", &harness.editor_script_path) // This script provides the new content
         .env("MEDI_DB_PATH", &harness.db_path)
@@ -172,7 +162,6 @@ fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("Successfully updated note"));
 
-    // VERIFY: Use `medi get` to confirm the content has changed.
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
         .args(["get", "edit-me"])

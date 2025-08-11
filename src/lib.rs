@@ -38,11 +38,6 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 colours::success(&format!("Successfully created note: '{}'", key));
             }
         }
-        // Commands::New { key , message} => {
-        //     // Call the appropriate function from the `db` module
-        //     db::create_note(&db, &key, |s| edit::edit(s))?;
-        //     colours::success(&format!("Successfully created note: '{}'", key));
-        // }
         Commands::Edit { key } => {
             let existing_content = db::get_note(&db, &key)?;
             let updated_content = edit::edit(existing_content)?;
@@ -70,12 +65,11 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         }
         Commands::Delete { key, force } => {
             let confirmed = if force {
-                true // If --force is used, we're automatically confirmed.
+                true
             } else {
-                // Use dialoguer to ask the user for confirmation.
                 Confirm::new()
                     .with_prompt(format!("Are you sure you want to delete '{}'?", key))
-                    .default(false) // Default to "no" if the user just hits Enter.
+                    .default(false)
                     .interact()?
             };
 
