@@ -59,7 +59,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] `new`: Create a new note.
 - [x] `get`: Read a note's content.
 - [x] `list`: List all note keys.
-- [ ] `edit`: Open an existing note in the editor.
+- [x] `edit`: Open an existing note in the editor.
 - [x] `delete`: Remove a note from the database.
 - [ ] `import`: Restore notes from a directory of Markdown files.
 - [ ] `export`: Save all notes to a directory as Markdown files.
