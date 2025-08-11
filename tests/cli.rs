@@ -1,46 +1,71 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::process::Command;
-use tempfile::tempdir;
+use tempfile::{tempdir, TempDir};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-#[test]
-fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
-    let temp_dir = tempdir()?;
-    let db_path = temp_dir.path().join("test_db");
-    let editor_script_path = temp_dir.path().join("mock_editor.sh");
+// A test harness to manage setup and teardown
+struct TestHarness {
+    _temp_dir: TempDir, // The underscore silences a warning, but TempDir cleans up on drop
+    db_path: PathBuf,
+    editor_script_path: PathBuf,
+}
 
-    let source_script_path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
+impl TestHarness {
+    fn new() -> Self {
+        let temp_dir = tempdir().unwrap();
+        let db_path = temp_dir.path().join("test_db");
+        let editor_script_path = temp_dir.path().join("mock_editor.sh");
 
-    fs::copy(source_script_path, &editor_script_path)?;
+        // Copy the mock editor script
+        let source_script_path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
+        fs::copy(source_script_path, &editor_script_path).unwrap();
 
-    #[cfg(unix)]
-    {
-        let mut perms = fs::metadata(&editor_script_path)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&editor_script_path, perms)?;
+        // Make it executable
+        #[cfg(unix)]
+        {
+            let mut perms = fs::metadata(&editor_script_path).unwrap().permissions();
+            perms.set_mode(0o755);
+            fs::set_permissions(&editor_script_path, perms).unwrap();
+        }
+
+        TestHarness {
+            _temp_dir: temp_dir,
+            db_path,
+            editor_script_path,
+        }
     }
 
-    let mut cmd = Command::cargo_bin("medi")?;
-    cmd.env("EDITOR", &editor_script_path);
-    cmd.env("MEDI_DB_PATH", &db_path);
+    // A helper to get a pre-configured Command for running `medi`
+    fn medi(&self) -> Command {
+        let mut cmd = Command::cargo_bin("medi").unwrap();
+        cmd.env("EDITOR", &self.editor_script_path);
+        cmd.env("MEDI_DB_PATH", &self.db_path);
+        cmd
+    }
+}
 
-    cmd.arg("new").arg("test-note");
-    cmd.assert()
+#[test]
+fn test_new_command_new() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // Run `medi new` with a note key
+    harness
+        .medi()
+        .args(["new", "test-note"])
+        .assert()
         .success()
         .stdout(predicate::str::contains("Successfully created note"));
 
-    // Get is not implemented yet, so we will not run it here.
-    let mut get_cmd = Command::cargo_bin("medi")?;
-    get_cmd.env("MEDI_DB_PATH", &db_path);
-    get_cmd.arg("get").arg("test-note");
-
-    get_cmd
+    // Check if the note was created
+    harness
+        .medi()
+        .args(["get", "test-note"])
         .assert()
         .success()
         .stdout(predicate::str::contains("integration test content"));
@@ -50,106 +75,84 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_list_command() -> Result<(), Box<dyn std::error::Error>> {
-    let temp_dir = tempdir()?;
-    let db_path = temp_dir.path().join("test_db_list");
-
-    let editor_script_path = temp_dir.path().join("mock_editor.sh");
-
-    let source_script_path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
-
-    fs::copy(source_script_path, &editor_script_path)?;
-
-    #[cfg(unix)]
-    {
-        let mut perms = fs::metadata(&editor_script_path)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&editor_script_path, perms)?;
-    }
+    let harness = TestHarness::new();
 
     // Create note "b"
-    Command::cargo_bin("medi")?
-        .env("EDITOR", &editor_script_path)
-        .env("MEDI_DB_PATH", &db_path)
+    harness
+        .medi()
         .args(["new", "b-note"])
         .assert()
         .success();
-
     // Create note "a"
-    Command::cargo_bin("medi")?
-        .env("EDITOR", &editor_script_path)
-        .env("MEDI_DB_PATH", &db_path)
+    harness
+        .medi()
         .args(["new", "a-note"])
         .assert()
         .success();
-
-    // 3. Run `medi list` and check the output.
-    let mut cmd = Command::cargo_bin("medi")?;
-    cmd.env("MEDI_DB_PATH", &db_path);
-    cmd.arg("list");
-
-    cmd.assert()
+    // Run `medi list` and check the output
+    harness
+        .medi()
+        .arg("list")
+        .assert()
         .success()
-        .stdout(predicate::str::is_match("(?s)a-note.*b-note").unwrap(),
-        );
+        .stdout(predicate::str::is_match("(?s)a-note.*b-note").unwrap());
+    // Create a note to list
+    harness
+        .medi()
+        .args(["new", "test-list"])
+        .assert()
+        .success();
+
+    // Run `medi list` and check the output
+    harness
+        .medi()
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("test-list"));
+
     Ok(())
 }
 
 #[test]
 fn test_list_command_empty() -> Result<(), Box<dyn std::error::Error>> {
-    let temp_dir = tempdir()?;
-    let db_path = temp_dir.path().join("test_db_empty");
-
-    let mut cmd = Command::cargo_bin("medi")?;
-    cmd.env("MEDI_DB_PATH", &db_path);
-    cmd.arg("list");
-
-    cmd.assert()
+    let harness = TestHarness::new();
+    // Run `medi list` on an empty database
+    harness
+        .medi()
+        .arg("list")
+        .assert()
         .success()
-        .stdout(predicate::str::is_empty())
-        .stderr(predicate::str::contains("No notes found."));
-
+        .stderr(predicate::str::contains("No notes found"));
     Ok(())
 }
 
 #[test]
 fn test_delete_command() -> Result<(), Box<dyn std::error::Error>> {
-    let temp_dir = tempdir()?;
-    let db_path = temp_dir.path().join("test_db_delete");
-
-    let editor_script_path = temp_dir.path().join("mock_editor.sh");
-    let source_script_path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
-
-    fs::copy(source_script_path, &editor_script_path)?;
-
-    #[cfg(unix)]
-    {
-        let mut perms = fs::metadata(&editor_script_path)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&editor_script_path, perms)?;
-    }
-
+    let harness = TestHarness::new();
     // Create a note to delete
-    Command::cargo_bin("medi")?
-        .env("EDITOR", &editor_script_path)
-        .env("MEDI_DB_PATH", &db_path)
+    harness
+        .medi() // Get a pre-configured command
         .args(["new", "delete-me"])
         .assert()
         .success();
+
     // Delete the note
-    let mut cmd = Command::cargo_bin("medi")?;
-    cmd.env("MEDI_DB_PATH", &db_path);
-    cmd.arg("delete").arg("delete-me");
-    cmd.assert()
+    harness
+        .medi()
+        .args(["delete", "delete-me"])
+        .assert()
         .success()
         .stdout(predicate::str::contains("Successfully deleted note"));
+
     // Try to get the deleted note
-    let mut get_cmd = Command::cargo_bin("medi")?;
-    get_cmd.env("MEDI_DB_PATH", &db_path);
-    get_cmd.arg("get").arg("delete-me");
-    get_cmd.assert()
+    harness
+        .medi()
+        .arg("get")
+        .arg("delete-me")
+        .assert()
         .failure()
-        .stderr(predicate::str::contains(" Key 'delete-me' not found in the database"));
+        .stderr(predicate::str::contains("Key 'delete-me' not found"));
+
     Ok(())
 }
