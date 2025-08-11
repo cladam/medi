@@ -62,7 +62,7 @@ pub fn edit_note(db: &Db, key: &str) -> Result<(), AppError> {
 pub fn get_note(db: &Db, key: &str) -> Result<String, AppError> {
     let value_ivec = db.get(key)?
         .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
-    
+
     Ok(str::from_utf8(&value_ivec)?.to_string())
 }
 
@@ -129,5 +129,29 @@ mod tests {
         // Call the function and assert that it returns the correct error.
         let result = create_note(&db, key, mock_editor);
         assert!(matches!(result, Err(AppError::KeyExists(_))));
+    }
+
+    #[test]
+    fn test_list_notes() {
+        let config = Config::new().temporary(true);
+        let db = config.open().expect("Failed to open temporary db");
+
+        db.insert("zeta-key", "").unwrap();
+        db.insert("alpha-key", "").unwrap();
+        db.insert("gamma-key", "").unwrap();
+
+        let keys = list_notes(&db).unwrap();
+
+        assert_eq!(keys.len(), 3);
+        assert_eq!(keys, vec!["alpha-key", "gamma-key", "zeta-key"]);
+    }
+
+    #[test]
+    fn test_list_notes_empty_db() {
+        let config = Config::new().temporary(true);
+        let db = config.open().expect("Failed to open temporary db");
+
+        let keys = list_notes(&db).unwrap();
+        assert!(keys.is_empty());
     }
 }

@@ -17,7 +17,6 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
     let source_script_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
 
-    // 3. Copy the script to the temporary directory.
     fs::copy(source_script_path, &editor_script_path)?;
 
     #[cfg(unix)]
@@ -46,5 +45,52 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("integration test content"));
 
+    Ok(())
+}
+
+#[test]
+fn test_list_command() -> Result<(), Box<dyn std::error::Error>> {
+    let temp_dir = tempdir()?;
+    let db_path = temp_dir.path().join("test_db_list");
+
+    let editor_script_path = temp_dir.path().join("mock_editor.sh");
+
+    let source_script_path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
+
+    fs::copy(source_script_path, &editor_script_path)?;
+
+    #[cfg(unix)]
+    {
+        let mut perms = fs::metadata(&editor_script_path)?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&editor_script_path, perms)?;
+    }
+
+    // Create note "b"
+    Command::cargo_bin("medi")?
+        .env("EDITOR", &editor_script_path)
+        .env("MEDI_DB_PATH", &db_path)
+        .args(["new", "b-note"])
+        .assert()
+        .success();
+
+    // Create note "a"
+    Command::cargo_bin("medi")?
+        .env("EDITOR", &editor_script_path)
+        .env("MEDI_DB_PATH", &db_path)
+        .args(["new", "a-note"])
+        .assert()
+        .success();
+
+    // 3. Run `medi list` and check the output.
+    let mut cmd = Command::cargo_bin("medi")?;
+    cmd.env("MEDI_DB_PATH", &db_path);
+    cmd.arg("list");
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::is_match("(?s)a-note.*b-note").unwrap(),
+        );
     Ok(())
 }

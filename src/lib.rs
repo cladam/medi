@@ -24,7 +24,15 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
             println!("{}", content);
         }
         Commands::List => {
-            // TODO: Call a db::list_notes function and print the keys
+            let notes = db::list_notes(&db)?;
+            if notes.is_empty() {
+                println!("No notes found.");
+            } else {
+                println!("Notes:");
+                for note in notes {
+                    println!("- {}", note);
+                }
+            }
         }
         Commands::Delete { key } => {
             // TODO: Call db::delete_note and print a success message
