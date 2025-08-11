@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 
 #[derive(Parser)]
 #[command(
@@ -70,4 +71,10 @@ pub enum Commands {
     Import { file: String },
     /// Export notes to a file.
     Export { file: String },
+    /// Generates shell completion scripts.
+    #[command(name = "generate-completion", hide = true)] // Hidden from help
+    Completion {
+        #[arg(value_enum)]
+        shell: Shell,
+    },
 }

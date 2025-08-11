@@ -6,6 +6,7 @@ pub mod colours;
 use std::io;
 use std::io::Read;
 use atty::Stream;
+use clap::CommandFactory;
 use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
 use error::AppError;
@@ -89,6 +90,11 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         }
         Commands::Export { .. } => {
             colours::info(&"Exporting notes is not implemented yet.".to_string());
+        }
+        Commands::Completion { shell } => {
+            let mut cmd = cli::Cli::command();
+            let bin_name = cmd.get_name().to_string();
+            clap_complete::generate(shell, &mut cmd, bin_name, &mut io::stdout());
         }
     }
     Ok(())

@@ -186,3 +186,25 @@ medi import ./my_notes_backup
 # Overwrite existing notes with the imported versions
 medi import ./my_notes_backup --overwrite
 ```
+
+### Shell Completion
+
+To make `medi` even faster to use, you can enable shell completion. Add one of the following lines to your shell's configuration file.
+
+For Zsh (`~/.zshrc`):
+
+```bash
+eval "$(medi generate-completion zsh)"
+```
+
+For Bash (`~/.bashrc`):
+
+```bash
+eval "$(medi generate-completion bash)"
+```
+
+For Fish (`~/.config/fish/config.fish`):
+
+```bash
+medi generate-completion fish | source
+```
