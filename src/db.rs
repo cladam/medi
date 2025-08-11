@@ -99,13 +99,18 @@ pub fn list_notes(db: &Db) -> Result<Vec<String>, AppError> {
         .collect()
 }
 
+// This function deletes a note from the database by its key.
 // Corresponds to `medi delete <key>`
+// It checks if the key exists in the database.
+// If the key does not exist, it returns an AppError::KeyNotFound.
+// If the key exists, it removes the note from the database and flushes the changes.
+// If there is an error during the process, it returns an AppError.
 pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
     if !db.contains_key(key)? {
         return Err(AppError::KeyNotFound(key.to_string()));
     }
     db.remove(key)?;
-    db.flush()?; // Ensure data is saved to disk
+    db.flush()?;
     Ok(())
 }
 
@@ -175,5 +180,16 @@ mod tests {
 
         let keys = list_notes(&db).unwrap();
         assert!(keys.is_empty());
+    }
+
+    #[test]
+    fn test_delete_note_success() {
+        let config = Config::new().temporary(true);
+        let db = config.open().expect("Failed to open temporary db");
+        let key = "test-delete-key";
+        db.insert(key, "content").unwrap();
+        let result = delete_note(&db, key);
+        assert!(result.is_ok());
+        assert!(!db.contains_key(key).unwrap());
     }
 }
