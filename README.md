@@ -49,7 +49,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] `get`: Read a note's content.
 - [x] `list`: List all note keys.
 - [ ] `edit`: Open an existing note in the editor.
-- [ ] `delete`: Remove a note from the database.
+- [x] `delete`: Remove a note from the database.
 - [ ] `import`: Restore notes from a directory of Markdown files.
 - [ ] `export`: Save all notes to a directory as Markdown files.
 
@@ -58,6 +58,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [ ] Configuration file for settings (e.g., database path).
 - [ ] Support for note metadata (tags, creation dates).
 - [ ] Full-text search over note content.
+- [ ] Implement a `task` command, for tracking the status of notes.
 
 ## Installation
 
