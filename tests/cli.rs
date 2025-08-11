@@ -13,7 +13,7 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
     let temp_dir = tempdir()?;
     let db_path = temp_dir.path().join("test_db");
     let editor_script_path = temp_dir.path().join("mock_editor.sh");
-    
+
     let source_script_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
 
@@ -37,7 +37,7 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains("Successfully created note"));
 
     // Get is not implemented yet, so we will not run it here.
-/*    let mut get_cmd = Command::cargo_bin("medi")?;
+    let mut get_cmd = Command::cargo_bin("medi")?;
     get_cmd.env("MEDI_DB_PATH", &db_path);
     get_cmd.arg("get").arg("test-note");
 
@@ -45,6 +45,6 @@ fn test_new_command() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("integration test content"));
-*/
+
     Ok(())
 }

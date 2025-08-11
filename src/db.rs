@@ -2,6 +2,7 @@ use crate::error::AppError;
 use sled::Db;
 use std::{env, fs, str};
 use std::path::PathBuf;
+use anyhow::anyhow;
 
 // Helper function to open the database
 pub fn open() -> Result<Db, AppError> {
@@ -59,10 +60,10 @@ pub fn edit_note(db: &Db, key: &str) -> Result<(), AppError> {
 
 // Corresponds to `medi get <key>`
 pub fn get_note(db: &Db, key: &str) -> Result<String, AppError> {
-    // TODO: Get the note from the db.
-    // If not found, return AppError::KeyNotFound.
-    // Convert the bytes to a String and return it.
-    Ok("".to_string()) // Placeholder
+    let value_ivec = db.get(key)?
+        .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
+    
+    Ok(str::from_utf8(&value_ivec)?.to_string())
 }
 
 // Corresponds to `medi list`

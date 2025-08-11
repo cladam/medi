@@ -20,7 +20,8 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
             // TODO: Call db::edit_note and print a success message
         }
         Commands::Get { key } => {
-            // TODO: Call db::get_note and print the result
+            let content = db::get_note(&db, &key)?;
+            println!("{}", content);
         }
         Commands::List => {
             // TODO: Call a db::list_notes function and print the keys

@@ -1,6 +1,7 @@
 use medi::{run, Cli};
 use clap::Parser;
 
+/// Main entry point for medi
 fn main() {
     let cli = Cli::parse();
 
