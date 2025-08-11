@@ -15,7 +15,7 @@ medi is built on a few guiding principles:
 
 ## Why Use medi?
 
-You can absolutely manage notes with a directory of Markdown files. However, `medis offers a layer of structure and tooling designed to make that process faster, more organized, and more powerful.
+You can absolutely manage notes with a directory of Markdown files. However, `medi` offers a layer of structure and tooling designed to make that process faster, more organised, and more powerful.
 
 1. Speed: Instant access to any note ⚡
 
@@ -27,7 +27,7 @@ You can absolutely manage notes with a directory of Markdown files. However, `me
 
    `medi` isn't just a file store; it's a workflow tool. It standardises the way you create, find, and edit notes, acting as a central hub for your writing.
 
-   - **No `cd` required**: You can create or edit a note from any directory in your terminal. You don't need to navigate to ~/Documents/notes first.
+   - **No `cd` required**: You can create or edit a note from any directory in your terminal. You don't need to navigate to `~/Documents/notes` first.
    - **Atomic operations**: When you save a note, the database update is atomic. You avoid issues like partially written files or saving temporary files by mistake.
    - **Future-proof**: This centralised workflow allows for powerful future features like **full-text search**, **tagging**, and **task management** that would be complex and slow to implement on a plain directory of files.
 
