@@ -94,3 +94,19 @@ fn test_list_command() -> Result<(), Box<dyn std::error::Error>> {
         );
     Ok(())
 }
+
+#[test]
+fn test_list_command_empty() -> Result<(), Box<dyn std::error::Error>> {
+    let temp_dir = tempdir()?;
+    let db_path = temp_dir.path().join("test_db_empty");
+
+    let mut cmd = Command::cargo_bin("medi")?;
+    cmd.env("MEDI_DB_PATH", &db_path);
+    cmd.arg("list");
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("No notes found."));
+
+    Ok(())
+}

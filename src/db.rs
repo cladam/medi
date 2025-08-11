@@ -5,6 +5,12 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 
 // Helper function to open the database
+// It checks the environment variable `MEDI_DB_PATH` for the database path.
+// If the variable is not set, it defaults to `~/.medi/medi_db`
+// It ensures the parent directory exists before opening the database.
+// If the database cannot be opened, it returns an AppError::Sled.
+// If the home directory cannot be found, it returns an AppError::Io.
+// If the database is opened successfully, it returns a sled::Db instance.
 pub fn open() -> Result<Db, AppError> {
     let db_path = match env::var("MEDI_DB_PATH") {
         Ok(db_path) => PathBuf::from(db_path),
@@ -27,7 +33,14 @@ pub fn open() -> Result<Db, AppError> {
     sled::open(db_path).map_err(AppError::from)
 }
 
+// This function creates a new note in the database.
+// It takes a key and a closure that provides the editor function.
 // Corresponds to `medi new <key>`
+// The closure is called with an empty string, and it should return the note content.
+// If the key already exists, it returns an AppError::KeyExists.
+// If the note content is empty, it prints a message and returns Ok(()) without saving.
+// If the note is successfully created, it saves the content to the database and flushes it.
+// If there is an error during the process, it returns an AppError.
 pub fn create_note<F>(db: &Db, key: &str, editor_fn: F) -> Result<(), AppError>
 where
     F: for<'a> FnOnce(&'a str) -> Result<String, std::io::Error>,
@@ -58,7 +71,11 @@ pub fn edit_note(db: &Db, key: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+// This function retrieves a note from the database by its key.
 // Corresponds to `medi get <key>`
+// It returns the note content as a String.
+// If the key does not exist, it returns an AppError::KeyNotFound.
+// If there is an error reading the database or converting the content to a String, it returns an AppError.
 pub fn get_note(db: &Db, key: &str) -> Result<String, AppError> {
     let value_ivec = db.get(key)?
         .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
@@ -66,15 +83,20 @@ pub fn get_note(db: &Db, key: &str) -> Result<String, AppError> {
     Ok(str::from_utf8(&value_ivec)?.to_string())
 }
 
+// This function lists all notes in the database.
 // Corresponds to `medi list`
+// It returns a vector of note keys (strings).
+// If the database is empty, it returns an empty vector.
+// If there is an error reading the database, it returns an AppError.
 pub fn list_notes(db: &Db) -> Result<Vec<String>, AppError> {
-    let mut keys = Vec::new();
-    for result in db.iter() {
-        let (key, _) = result.map_err(AppError::from)?;
-        let key_str = str::from_utf8(&key).map_err(AppError::Utf8)?;
-        keys.push(key_str.to_string());
-    }
-    Ok(keys)
+    db.iter()
+        .keys()
+        .map(|result| {
+            let key_bytes = result?;
+            let key_str = str::from_utf8(&key_bytes)?;
+            Ok(key_str.to_string())
+        })
+        .collect()
 }
 
 // Corresponds to `medi delete <key>`
