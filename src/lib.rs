@@ -1,7 +1,7 @@
 mod cli;
 mod db;
 mod error;
-
+pub mod colours;
 pub use cli::{Cli, Commands};
 use error::AppError;
 
@@ -14,7 +14,7 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         Commands::New { key } => {
             // Call the appropriate function from the `db` module
             db::create_note(&db, &key, |s| edit::edit(s))?;
-            println!("Successfully created note: '{}'", key);
+            colours::success(&format!("Successfully created note: '{}'", key));
         }
         Commands::Edit { key } => {
             // TODO: Call db::edit_note and print a success message
@@ -26,9 +26,9 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         Commands::List => {
             let notes = db::list_notes(&db)?;
             if notes.is_empty() {
-                println!("No notes found.");
+                colours::warn("No notes found.");
             } else {
-                println!("Notes:");
+                colours::info("Notes:");
                 for note in notes {
                     println!("- {}", note);
                 }
@@ -36,17 +36,17 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         }
         Commands::Delete { key } => {
             if db::delete_note(&db, &key).is_ok() {
-                println!("Successfully deleted note: '{}'", key);
+                colours::success(&format!("Successfully deleted note: '{}'", key));
             } else {
-                println!("Failed to delete note: '{}'. It may not exist.", key);
+                colours::error(&format!("Failed to delete note: '{}'. It may not exist.", key));
             }
         }
         // The import/export commands can be implemented later
         Commands::Import { .. } => {
-            println!("'import' is not implemented yet.");
+            colours::info(&"Importing notes is not implemented yet.".to_string());
         }
         Commands::Export { .. } => {
-            println!("'export' is not implemented yet.");
+            colours::info(&"Exporting notes is not implemented yet.".to_string());
         }
     }
     Ok(())

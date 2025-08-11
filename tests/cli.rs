@@ -106,7 +106,8 @@ fn test_list_command_empty() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("No notes found."));
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::contains("No notes found."));
 
     Ok(())
 }
