@@ -24,20 +24,40 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
 ```
-+-----------+      medi new/edit      +----------------+      medi export        +-------------------+
-|           | ----------------------> |                | ----------------------> |                   |
-|   You     |                         |  Sled Database |                         |  /notes Directory |
-|           | <---------------------- |                | <---------------------- |                   |
-+-----------+       medi get          +----------------+       medi import       +-------------------+
-                                                                                            |
-                                                                                            | git commit
-                                                                                            V
-                                                                                      +-----------+
-                                                                                      |           |
-                                                                                      | Git Repo  |
-                                                                                      |           |
-                                                                                      +-----------+
++-----------+    medi new/edit     +----------------+     medi export       +-------------------+
+|           | -------------------> |                | --------------------> |                   |
+|   You     |                      |  Sled Database |                       |  /notes Directory |
+|           | <------------------- |                | <-------------------- |                   |
++-----------+      medi get        +----------------+      medi import      +-------------------+
+                                                                                      |
+                                                                                      | git commit
+                                                                                      V
+                                                                                +-----------+
+                                                                                |           |
+                                                                                | Git Repo  |
+                                                                                |           |
+                                                                                +-----------+
 ```
+
+## Project Status & Roadmap 🗺️
+
+This section tracks the implementation status of `medi`'s features. Contributions are welcome!
+
+### Core Functionality
+
+- [x] `new`: Create a new note.
+- [x] `get`: Read a note's content.
+- [x] `list`: List all note keys.
+- [ ] `edit`: Open an existing note in the editor.
+- [ ] `delete`: Remove a note from the database.
+- [ ] `import`: Restore notes from a directory of Markdown files.
+- [ ] `export`: Save all notes to a directory as Markdown files.
+
+### Future Ideas
+
+- [ ] Configuration file for settings (e.g., database path).
+- [ ] Support for note metadata (tags, creation dates).
+- [ ] Full-text search over note content.
 
 ## Installation
 
