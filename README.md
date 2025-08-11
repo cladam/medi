@@ -48,19 +48,19 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
 ```
-+-----------+    medi new/edit    +----------------+     medi export      +-------------------+
-|           | ------------------> |                | -------------------> |                   |
-|   You     |                     |  Sled Database |                      |  /notes Directory |
-|           | <------------------ |                | <------------------- |                   |
-+-----------+      medi get       +----------------+      medi import     +-------------------+
-                                                                                   |
-                                                                                   | git commit
-                                                                                   V
-                                                                             +-----------+
-                                                                             |           |
-                                                                             | Git Repo  |
-                                                                             |           |
-                                                                             +-----------+
++-----------+    medi new/edit   +----------------+    medi export      +------------------+
+|           | -----------------> |                | ------------------> |                  |
+|   You     |                    |  Sled Database |                     | /notes Directory |
+|           | <----------------- |                | <------------------ |                  |
++-----------+     medi get       +----------------+     medi import     +------------------+
+                                                                                |
+                                                                                | git commit
+                                                                                V
+                                                                          +-----------+
+                                                                          |           |
+                                                                          | Git Repo  |
+                                                                          |           |
+                                                                          +-----------+
 ```
 
 ## Project Status & Roadmap 🗺️
