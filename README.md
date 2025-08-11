@@ -13,29 +13,16 @@ medi is built on a few guiding principles:
 - **Local & private**: All content is stored on your local machine in a high-performance embedded database. No cloud services, no network access.
 - **Zero-config start**: Install it and start writing immediately.
 
-## Why Use medi?
+## Features ✨
 
-You can absolutely manage notes with a directory of Markdown files. However, `medi` offers a layer of structure and tooling designed to make that process faster, more organised, and more powerful.
-
-1. Speed: Instant access to any note ⚡
-
-   A simple `ls` and `cat` works for a dozen files, but it breaks down with hundreds or thousands. `medi` uses an embedded database (`sled`) as a high-performance index.
-   `medi get my-old-note` is instantaneous, no matter how many notes you have. It doesn't need to scan a directory; it performs a direct key lookup.
-   `medi list` is equally fast, giving you a clean overview without the noise of filesystem details.
-
-2. Workflow: An editor-centric hub ✍️
-
-   `medi` isn't just a file store; it's a workflow tool. It standardises the way you create, find, and edit notes, acting as a central hub for your writing.
-
-   - **No `cd` required**: You can create or edit a note from any directory in your terminal. You don't need to navigate to `~/Documents/notes` first.
-   - **Atomic operations**: When you save a note, the database update is atomic. You avoid issues like partially written files or saving temporary files by mistake.
-   - **Future-proof**: This centralised workflow allows for powerful future features like **full-text search**, **tagging**, and **task management** that would be complex and slow to implement on a plain directory of files.
-
-3. Abstraction: key vs. filename
-
-   With `medi`, you think in terms of a `key`, which is a clean, abstract identifier. You don't have to worry about filesystem limitations, illegal filename characters, or file extensions. This clean separation of `key` (the identifier) from `value` (the Markdown content) is a simple but powerful concept that keeps your collection of notes tidy.
-
-In short, `medi` provides the **simplicity of Markdown** with the **speed and structure of a database**, creating a focused workflow for command-line writing.
+* **Speed**: Instant access to any note, no matter how large your collection grows, thanks to an embedded database index.
+* **Focused Workflow**: A command-line hub for your writing. Create or edit notes from any directory without needing to `cd` first.
+* **Flexible Input**: Create notes in the way that suits your workflow:
+    * Interactively in your favorite editor for long-form content.
+    * Instantly with a one-liner using the `-m` flag for quick thoughts.
+    * Powerfully by piping from other commands for scripting.
+* **Safe Deletion**: An interactive confirmation prompt on `delete` prevents you from accidentally losing work.
+* **Colorful & Clear Output**: Uses colored output to clearly distinguish between success messages, information, warnings, and errors.
 
 ## How It Works, DB as Source-of-Truth
 
@@ -106,21 +93,31 @@ cargo install --path .
 
 ## Usage
 
-### Creating and editing notes
+### Creating and Editing Notes
 
-- **Create a new note**
+* **Create a new note**
 
-This opens your default editor. Save and quit to store the note.
+    `medi` provides three ways to create a new note:
 
-```bash
-medi new "my-first-article"
-```
+    1.  **Interactively (default)**: Opens your default editor for long-form content.
+        ```bash
+        medi new "my-long-article"
+        ```
 
-- **Edit an existing note**
+    2.  **With a direct message**: Perfect for quick, one-line notes.
+        ```bash
+        medi new quick-idea -m "Remember to buy milk"
+        ```
 
-```bash
-medi edit "my-first-article"
-```
+    3.  **From a pipe**: Use the output of other commands as your note content.
+        ```bash
+        echo "This is a note from a pipe" | medi new piped-note
+        ```
+
+* **Edit an existing note**
+    ```bash
+    medi edit "my-long-article"
+    ```
 
 ### Viewing and listing notes
 
