@@ -35,7 +35,11 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
             }
         }
         Commands::Delete { key } => {
-            // TODO: Call db::delete_note and print a success message
+            if db::delete_note(&db, &key).is_ok() {
+                println!("Successfully deleted note: '{}'", key);
+            } else {
+                println!("Failed to delete note: '{}'. It may not exist.", key);
+            }
         }
         // The import/export commands can be implemented later
         Commands::Import { .. } => {

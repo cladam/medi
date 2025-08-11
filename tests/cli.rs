@@ -110,3 +110,45 @@ fn test_list_command_empty() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_delete_command() -> Result<(), Box<dyn std::error::Error>> {
+    let temp_dir = tempdir()?;
+    let db_path = temp_dir.path().join("test_db_delete");
+
+    let editor_script_path = temp_dir.path().join("mock_editor.sh");
+    let source_script_path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/resources/mock_editor.sh");
+
+    fs::copy(source_script_path, &editor_script_path)?;
+
+    #[cfg(unix)]
+    {
+        let mut perms = fs::metadata(&editor_script_path)?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&editor_script_path, perms)?;
+    }
+
+    // Create a note to delete
+    Command::cargo_bin("medi")?
+        .env("EDITOR", &editor_script_path)
+        .env("MEDI_DB_PATH", &db_path)
+        .args(["new", "delete-me"])
+        .assert()
+        .success();
+    // Delete the note
+    let mut cmd = Command::cargo_bin("medi")?;
+    cmd.env("MEDI_DB_PATH", &db_path);
+    cmd.arg("delete").arg("delete-me");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Successfully deleted note"));
+    // Try to get the deleted note
+    let mut get_cmd = Command::cargo_bin("medi")?;
+    get_cmd.env("MEDI_DB_PATH", &db_path);
+    get_cmd.arg("get").arg("delete-me");
+    get_cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains(" Key 'delete-me' not found in the database"));
+    Ok(())
+}
