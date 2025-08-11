@@ -17,7 +17,13 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Create a new note with the specified key.
-    New { key: String },
+    New {
+        /// The key (or title) for the new note.
+        key: String,
+        /// Provide the note content directly as an argument.
+        #[arg(short, long)]
+        message: Option<String>,
+    },
     /// Edit an existing note with the specified key.
     Edit { key: String },
     /// Get the content of a note with the specified key.

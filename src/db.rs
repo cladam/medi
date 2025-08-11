@@ -62,6 +62,30 @@ where
     Ok(())
 }
 
+/// This function just saves content. It's simple and has no editor logic.
+pub fn insert_new_note(db: &Db, key: &str, content: &str) -> Result<(), AppError> {
+    if db.contains_key(key)? {
+        return Err(AppError::KeyExists(key.to_string()));
+    }
+    db.insert(key, content.as_bytes())?;
+    db.flush()?;
+    Ok(())
+}
+
+/// This function handles the editor workflow. It takes a generic editor function
+/// so it remains testable.
+pub fn create_note_with_editor<F>(db: &Db, key: &str, editor_fn: F) -> Result<String, AppError>
+where
+    F: for<'a> FnOnce(&'a str) -> Result<String, std::io::Error>,
+{
+    if db.contains_key(key)? {
+        return Err(AppError::KeyExists(key.to_string()));
+    }
+
+    let value = editor_fn("")?;
+    Ok(value)
+}
+
 // Corresponds to `medi edit <key>`
 pub fn edit_note(db: &Db, key: &str) -> Result<(), AppError> {
     // TODO: Get the existing note content from the db.

@@ -3,6 +3,9 @@ mod db;
 mod error;
 pub mod colours;
 
+use std::io;
+use std::io::Read;
+use atty::Stream;
 use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
 use error::AppError;
@@ -13,11 +16,33 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
     let db = db::open()?;
 
     match cli.command {
-        Commands::New { key } => {
-            // Call the appropriate function from the `db` module
-            db::create_note(&db, &key, |s| edit::edit(s))?;
-            colours::success(&format!("Successfully created note: '{}'", key));
+        Commands::New { key, message } => {
+            // Determine the content from one of three sources.
+            let content = if let Some(message_content) = message {
+                message_content
+            } else if !atty::is(Stream::Stdin) {
+                let mut buffer = String::new();
+                io::stdin().read_to_string(&mut buffer)?;
+                buffer
+            } else {
+                // Fallback: call the editor directly from the application logic layer.
+                edit::edit("")?
+            };
+
+            // Save the note if content is not empty.
+            if content.trim().is_empty() {
+                colours::warn("Note creation cancelled (empty content).");
+            } else {
+                // Call the simple insert function.
+                db::insert_new_note(&db, &key, &content)?;
+                colours::success(&format!("Successfully created note: '{}'", key));
+            }
         }
+        // Commands::New { key , message} => {
+        //     // Call the appropriate function from the `db` module
+        //     db::create_note(&db, &key, |s| edit::edit(s))?;
+        //     colours::success(&format!("Successfully created note: '{}'", key));
+        // }
         Commands::Edit { key } => {
             // TODO: Call db::edit_note and print a success message
         }
