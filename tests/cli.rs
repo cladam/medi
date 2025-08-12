@@ -171,3 +171,55 @@ fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_import_single_file() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+    let import_file_path = harness._temp_dir.path().join("imported_note.txt");
+    fs::write(&import_file_path, "This is an imported note.").unwrap();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["import", "--file", &import_file_path.to_string_lossy(), "--key", "imported-note"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Imported 'imported-note' from"));
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "imported-note"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("This is an imported note."));
+
+    Ok(())
+}
+
+#[test]
+fn test_import_directory() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    let import_dir = harness._temp_dir.path().join("import_test");
+    fs::create_dir_all(&import_dir)?;
+    fs::write(import_dir.join("import-one.md"), "content for import one")?;
+    fs::write(import_dir.join("import-two.md"), "content for import two")?;
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["import", "--dir", &import_dir.to_string_lossy()])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Imported 'import-one'")
+                .and(predicate::str::contains("Imported 'import-two'")),
+        );
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "import-one"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("content for import one"));
+
+    Ok(())
+}
