@@ -22,10 +22,10 @@ edit = "0.1.5"
 sled = "0.34.7"
 dirs = "6.0.0"
 atty = "0.2.14"
+tempfile = "3.20.0"
 
 [dev-dependencies]
 serial_test = "3.2.0"
-tempfile = "3.20.0"
 assert_cmd = "2.0.17"
 predicates = "3.1.3"
 

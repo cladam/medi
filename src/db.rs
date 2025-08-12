@@ -117,6 +117,18 @@ pub fn import_note(db: &Db, key: &str, content: &str, overwrite: bool) -> Result
     Ok(true)
 }
 
+/// Returns all notes as a vector of (key, content) tuples.
+pub fn get_all_notes(db: &Db) -> Result<Vec<(String, String)>, AppError> {
+    db.iter()
+        .map(|result| {
+            let (key_bytes, val_bytes) = result?;
+            let key = String::from_utf8(key_bytes.to_vec())?;
+            let val = String::from_utf8(val_bytes.to_vec())?;
+            Ok((key, val))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*; // Import everything from the parent module (db)

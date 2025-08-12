@@ -11,6 +11,7 @@ use clap::CommandFactory;
 use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
 use error::AppError;
+use tempfile::Builder as TempBuilder;
 
 // The main logic function, which takes the parsed CLI commands
 pub fn run(cli: Cli) -> Result<(), AppError> {
@@ -27,8 +28,13 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 io::stdin().read_to_string(&mut buffer)?;
                 buffer
             } else {
-                // Fallback: call the editor directly from the application logic layer.
-                edit::edit("")?
+                let tempfile = TempBuilder::new()
+                    .prefix("medi-note-")
+                    .suffix(".md")
+                    .tempfile()?;
+                let temppath = tempfile.path().to_path_buf();
+                edit::edit_file(&temppath)?;
+                fs::read_to_string(&temppath)?
             };
 
             // Save the note if content is not empty.
@@ -42,13 +48,22 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
         }
         Commands::Edit { key } => {
             let existing_content = db::get_note(&db, &key)?;
-            let updated_content = edit::edit(existing_content)?;
-            if updated_content.trim().is_empty() {
-                colours::warn("Note update cancelled (empty content).");
-                return Ok(());
+            let tempfile = TempBuilder::new()
+                .prefix("medi-note-")
+                .suffix(".md")
+                .tempfile()?;
+
+            let temppath = tempfile.path().to_path_buf();
+            fs::write(&temppath, &existing_content)?;
+            edit::edit_file(&temppath)?;
+
+            let updated_content = fs::read_to_string(&temppath)?;
+            if updated_content.trim() != existing_content.trim() {
+                db::update_note(&db, &key, &updated_content)?;
+                colours::success(&format!("Successfully updated note: '{}'", key));
+            } else {
+                colours::info("Note content unchanged.");
             }
-            db::update_note(&db, &key, &updated_content)?;
-            colours::success(&format!("Successfully updated note: '{}'", key));
         }
         Commands::Get { key } => {
             let content = db::get_note(&db, &key)?;
