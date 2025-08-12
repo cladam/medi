@@ -94,7 +94,7 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                     Ok(false) => colours::warn(&format!("Skipped '{}' (already exists)", key)),
                     Err(e) => colours::error(&format!("Failed to import '{}': {}", key, e)),
                 }
-            } else if let Some(dir_path_str) = args.directory {
+            } else if let Some(dir_path_str) = args.dir {
                 // Directory import
                 let dir_path = Path::new(&dir_path_str);
                 if !dir_path.is_dir() {
