@@ -101,6 +101,22 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Imports a single note, handling the overwrite logic.
+/// Returns `Ok(true)` if imported, `Ok(false)` if skipped.
+pub fn import_note(db: &Db, key: &str, content: &str, overwrite: bool) -> Result<bool, AppError> {
+    let key_exists = db.contains_key(key)?;
+
+    if key_exists && !overwrite {
+        // Key exists and we shouldn't overwrite, so we skip it.
+        return Ok(false);
+    }
+
+    // Otherwise, insert/overwrite the note.
+    db.insert(key, content.as_bytes())?;
+    db.flush()?;
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*; // Import everything from the parent module (db)

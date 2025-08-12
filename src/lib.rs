@@ -3,8 +3,9 @@ mod db;
 mod error;
 pub mod colours;
 
-use std::io;
+use std::{fs, io};
 use std::io::Read;
+use std::path::Path;
 use atty::Stream;
 use clap::CommandFactory;
 use dialoguer::Confirm;
@@ -84,9 +85,46 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 colours::warn("Deletion cancelled.");
             }
         }
-        // The import/export commands can be implemented later
-        Commands::Import { .. } => {
-            colours::info(&"Importing notes is not implemented yet.".to_string());
+        Commands::Import(args) => {
+            if let (Some(file_path), Some(key)) = (args.file, args.key) {
+                // Single file import
+                let content = fs::read_to_string(&file_path)?;
+                match db::import_note(&db, &key, &content, args.overwrite) {
+                    Ok(true) => colours::success(&format!("Imported '{}' from '{}'", key, file_path)),
+                    Ok(false) => colours::warn(&format!("Skipped '{}' (already exists)", key)),
+                    Err(e) => colours::error(&format!("Failed to import '{}': {}", key, e)),
+                }
+            } else if let Some(dir_path_str) = args.directory {
+                // Directory import
+                let dir_path = Path::new(&dir_path_str);
+                if !dir_path.is_dir() {
+                    return Err(AppError::Io(std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        format!("Directory not found: {}", dir_path_str),
+                    )));
+                }
+
+                // Read the directory contents
+                for entry in fs::read_dir(dir_path)? {
+                    let entry = entry?;
+                    let file_path = entry.path();
+
+                    // Process only if it's a file with a .md extension
+                    if file_path.is_file() && file_path.extension() == Some("md".as_ref()) {
+                        // Use the filename (without extension) as the key
+                        if let Some(key) = file_path.file_stem().and_then(|s| s.to_str()) {
+                            let content = fs::read_to_string(&file_path)?;
+
+                            // Call the database function to handle the insert
+                            match db::import_note(&db, key, &content, args.overwrite) {
+                                Ok(true) => colours::success(&format!("Imported '{}'", key)),
+                                Ok(false) => colours::warn(&format!("Skipped '{}' (already exists)", key)),
+                                Err(e) => colours::error(&format!("Failed to import '{}': {}", key, e)),
+                            }
+                        }
+                    }
+                }
+            }
         }
         Commands::Export { .. } => {
             colours::info(&"Exporting notes is not implemented yet.".to_string());

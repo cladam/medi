@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ArgGroup};
 use clap_complete::Shell;
 
 #[derive(Parser)]
@@ -13,6 +13,29 @@ use clap_complete::Shell;
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+}
+
+#[derive(Args, Debug)]
+#[command(group(
+    ArgGroup::new("input_source")
+        .required(true)
+))]
+pub struct ImportArgs {
+    /// The path to the directory containing .md files.
+    #[arg(long, group = "input_source")]
+    pub directory: Option<String>,
+
+    /// The path to a single .md file to import. (Requires --key)
+    #[arg(long, group = "input_source", requires = "key")]
+    pub file: Option<String>,
+
+    /// The key to use for the single file import.
+    #[arg(long)]
+    pub key: Option<String>,
+
+    /// Overwrite an existing note with the same key.
+    #[arg(long, action = clap::ArgAction::SetTrue)]
+    pub overwrite: bool,
 }
 
 #[derive(Subcommand)]
@@ -67,8 +90,8 @@ pub enum Commands {
         #[arg(long, short, action = clap::ArgAction::SetTrue)]
         force: bool,
     },
-    /// Import notes from a file.
-    Import { file: String },
+    /// Import notes from a directory or a single file.
+    Import(ImportArgs),
     /// Export notes to a file.
     Export { file: String },
     /// Generates shell completion scripts.
