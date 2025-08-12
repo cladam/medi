@@ -223,3 +223,46 @@ fn test_import_directory() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_export_command() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+    // Create two notes to export.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["new", "note-one", "-m", "content for note one"])
+        .assert()
+        .success();
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["new", "note-two", "-m", "content for note two"])
+        .assert()
+        .success();
+
+    // Define a path for the export directory.
+    let export_dir = harness._temp_dir.path().join("export_test");
+
+    // Run the `export` command.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .arg("export")
+        .arg(&export_dir)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Successfully exported 2 notes"));
+
+    // VERIFY: Check that the files were created with the correct content.
+    let note_one_path = export_dir.join("note-one.md");
+    let note_two_path = export_dir.join("note-two.md");
+
+    assert!(note_one_path.exists());
+    assert!(note_two_path.exists());
+
+    let content_one = fs::read_to_string(note_one_path)?;
+    let content_two = fs::read_to_string(note_two_path)?;
+
+    assert_eq!(content_one, "content for note one");
+    assert_eq!(content_two, "content for note two");
+
+    Ok(())
+}
