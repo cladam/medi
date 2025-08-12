@@ -61,7 +61,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] `list`: List all note keys.
 - [x] `edit`: Open an existing note in the editor.
 - [x] `delete`: Remove a note from the database.
-- [ ] `import`: Restore notes from a directory of Markdown files.
+- [x] `import`: Restore notes from a directory of Markdown files.
 - [ ] `export`: Save all notes to a directory as Markdown files.
 
 ### Future Ideas
@@ -168,12 +168,12 @@ cd my_notes_backup
 tbdflow init
 ```
 
-**Next steps:**
-1. Create a repository on your git provider (e.g. GitHub).
-2. Run the following command to link it:
-   `git remote add origin <your-repository-url>`
-3. Then run this command to push your initial commit:
-   `git push -u origin main`
+   **Next steps:**
+   1. Create a repository on your git provider (e.g. GitHub).
+   2. Run the following command to link it:
+      `git remote add origin <your-repository-url>`
+   3. Then run this command to push your initial commit:
+      `git push -u origin main`
 
 - **Import notes from a directory**
 Restores notes from a directory of .md files.
@@ -181,10 +181,13 @@ Restores notes from a directory of .md files.
 ```bash
 
 # By default, skips any notes that already exist
-medi import ./my_notes_backup
+medi import --dir /path/to/notes
+
+# Import a single note
+medi import --file /path/to/note.md --key my-note
 
 # Overwrite existing notes with the imported versions
-medi import ./my_notes_backup --overwrite
+medi import --file /path/to/note.md --key my-note --overwrite
 ```
 
 ### Shell Completion

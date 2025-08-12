@@ -23,7 +23,7 @@ pub struct Cli {
 pub struct ImportArgs {
     /// The path to the directory containing .md files.
     #[arg(long, group = "input_source")]
-    pub directory: Option<String>,
+    pub dir: Option<String>,
 
     /// The path to a single .md file to import. (Requires --key)
     #[arg(long, group = "input_source", requires = "key")]
@@ -91,6 +91,13 @@ pub enum Commands {
         force: bool,
     },
     /// Import notes from a directory or a single file.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Import from a directory: Imports all .md files from the specified directory.\n  \
+    medi import --dir /path/to/notes\n\n  \
+    # Import a single file: Imports a single .md file with an mandatory key.\n  \
+    medi import --file /path/to/note.md --key my-note\n\n  \
+    # Use --overwrite to replace an existing note with the same key.\n  \
+    medi import --file /path/to/note.md --key my-note --overwrite")]
     Import(ImportArgs),
     /// Export notes to a file.
     Export { file: String },
