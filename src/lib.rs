@@ -141,8 +141,27 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 }
             }
         }
-        Commands::Export { .. } => {
-            colours::info(&"Exporting notes is not implemented yet.".to_string());
+        Commands::Export { path } => {
+            let export_path = Path::new(&path);
+
+            // Create the export directory if it doesn't exist.
+            fs::create_dir_all(export_path)?;
+
+            let notes = db::get_all_notes(&db)?;
+            let note_count = notes.len();
+
+            if note_count == 0 {
+                colours::warn("No notes to export.");
+                return Ok(());
+            }
+
+            for (key, content) in notes {
+                // Construct the filename, e.g., "my-note.md"
+                let file_path = export_path.join(format!("{}.md", key));
+                fs::write(file_path, content)?;
+            }
+
+            colours::success(&format!("Successfully exported {} notes to '{}'", note_count, path));
         }
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();

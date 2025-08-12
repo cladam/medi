@@ -100,7 +100,7 @@ pub enum Commands {
     medi import --file /path/to/note.md --key my-note --overwrite")]
     Import(ImportArgs),
     /// Export notes to a file.
-    Export { file: String },
+    Export { path: String },
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {
