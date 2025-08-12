@@ -9,7 +9,6 @@ use clap_complete::Shell;
     about = "CLI driven Markdown manager",
     long_about = None)]
 #[command(propagate_version = true)]
-
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
