@@ -50,28 +50,6 @@ To version control your work with Git, `medi` provides a simple and deliberate w
                                                                           +-----------+
 ```
 
-## Project Status & Roadmap 🗺️
-
-This section tracks the implementation status of `medi`'s features. Contributions are welcome!
-
-### Core Functionality
-
-- [x] `new`: Create a new note.
-- [x] `get`: Read a note's content.
-- [x] `list`: List all note keys.
-- [x] `edit`: Open an existing note in the editor.
-- [x] `delete`: Remove a note from the database.
-- [x] `import`: Restore notes from a directory of Markdown files.
-- [x] `export`: Save all notes to a directory as Markdown files.
-
-### Future Ideas
-
-- [ ] Configuration file for settings (e.g., database path).
-- [ ] Support for note metadata (tags, creation dates).
-- [ ] Export by tag.
-- [ ] Full-text search over note content.
-- [ ] Implement a `task` command, for tracking the status of notes.
-
 ## Installation
 
 You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
@@ -212,3 +190,14 @@ For Fish (`~/.config/fish/config.fish`):
 ```bash
 medi generate-completion fish | source
 ```
+
+## Project Roadmap 🗺️
+
+This section tracks the implementation status of `medi`'s features. Contributions are welcome!
+
+- [x] All core commands (new, get, list, edit, delete, import, export).
+- [ ] Configuration file for settings (e.g., database path).
+- [ ] Support for note metadata (tags, creation dates).
+- [ ] `export` notes by tag.
+- [ ] Full-text search over note content.
+- [ ] Implement a `task` command for tracking the status of notes.
