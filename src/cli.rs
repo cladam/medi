@@ -65,7 +65,12 @@ pub enum Commands {
     medi get \"my-long-article\"\n\n  \
     # Use this command to quickly view the content of a note without editing it.\n  \
     # Pipe to a Markdown renderer like mdcat \n  \
-    medi get \"my-first-article\" | mdcat")]
+    medi get \"my-first-article\" | mdcat\n\n  \
+    # You can also use this command to extract specific notes from a list.\n  \
+    # For example, to get a note with a specific key:\n  \
+    medi list | grep -o \"my-article\" | xargs medi get\n\n  \
+    # Write the output to a file:\n  \
+    medi get \"my-long-article\" > my-note.md")]
     Get { key: String },
     /// List all notes.
     #[command(after_help = "EXAMPLE:\n  \

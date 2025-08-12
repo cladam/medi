@@ -1,4 +1,14 @@
+<div align="center">
+
 # medi ✒️
+
+[![Crates.io](https://img.shields.io/crates/v/medi.svg)](https://crates.io/crates/medi)
+[![Downloads](https://img.shields.io/crates/d/medi.svg)](https://crates.io/crates/medi)
+
+</div>
+
+
+## `medi`, a speedy CLI driven Markdown manager
 
 **A fast, editor-centric, command-line notes manager.**
 
@@ -6,7 +16,7 @@
 
 ## Core Philosophy
 
-medi is built on a few guiding principles:
+`medi` is built on a few guiding principles:
 
 - **CLI-first**: Everything is done through the terminal. No GUIs or TUIs, no distractions.
 - **Editor-centric**: Your text editor (`$EDITOR`) is where you write. `medi` gets you there quickly and saves your work securely.
@@ -68,6 +78,12 @@ cargo install --git https://github.com/cladam/medi.git
 git clone https://github.com/cladam/medi.git
 cd medi
 cargo install --path .
+```
+
+### Install from crates.io
+
+```bash
+cargo install medi
 ```
 
 ## Usage
