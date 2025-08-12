@@ -44,22 +44,6 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Export**: Run `medi export ./my-notes` to write all your notes to a local directory as `.md` files.
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
-```
-+-----------+    medi new/edit   +----------------+    medi export      +------------------+
-|           | -----------------> |                | ------------------> |                  |
-|   You     |                    |  Sled Database |                     | /notes Directory |
-|           | <----------------- |                | <------------------ |                  |
-+-----------+     medi get       +----------------+     medi import     +------------------+
-                                                                                |
-                                                                                | git commit
-                                                                                V
-                                                                          +-----------+
-                                                                          |           |
-                                                                          | Git Repo  |
-                                                                          |           |
-                                                                          +-----------+
-```
-
 ## Installation
 
 You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
@@ -217,3 +201,4 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [ ] `export` notes by tag.
 - [ ] Full-text search over note content.
 - [ ] Implement a `task` command for tracking the status of notes.
+
