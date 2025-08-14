@@ -18,6 +18,9 @@ pub enum AppError {
     #[error("User input error: {0}")]
     Dialoguer(#[from] DialoguerError),
 
+    #[error("JSON serialization/deserialization error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+
     #[error("Key '{0}' not found in the database")]
     KeyNotFound(String),
 

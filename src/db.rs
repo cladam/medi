@@ -2,6 +2,8 @@ use crate::error::AppError;
 use sled::Db;
 use std::{env, fs, str};
 use std::path::PathBuf;
+use serde_json;
+use crate::note::Note;
 
 // Helper function to open the database
 // It checks the environment variable `MEDI_DB_PATH` for the database path.
@@ -32,42 +34,32 @@ pub fn open() -> Result<Db, AppError> {
     sled::open(db_path).map_err(AppError::from)
 }
 
-/// This function just saves content. It's simple and has no editor logic.
-pub fn insert_new_note(db: &Db, key: &str, content: &str) -> Result<(), AppError> {
-    if db.contains_key(key)? {
-        return Err(AppError::KeyExists(key.to_string()));
-    }
-    db.insert(key, content.as_bytes())?;
+/// Checks if a key exists in the database.
+pub fn key_exists(db: &Db, key: &str) -> Result<bool, AppError> {
+    db.contains_key(key).map_err(AppError::from)
+}
+
+/// Saves a Note object to the database by serializing it to JSON.
+pub fn save_note(db: &Db, note: &Note) -> Result<(), AppError> {
+    let json_bytes = serde_json::to_vec(note)?;
+
+    db.insert(&note.key, json_bytes)?;
     db.flush()?;
     Ok(())
 }
 
-/// This function updates an existing note in the database by its key.
-/// Corresponds to `medi update <key> <new_content>`
+/// Retrieves a Note object from the database by deserializing it from JSON.
+/// Corresponds to `medi get <key>`
 /// It checks if the key exists in the database.
 /// If the key does not exist, it returns an AppError::KeyNotFound.
-/// If the key exists, it updates the note content with the new content provided.
+/// If the key exists, it deserializes the note content from JSON and returns it.
 /// If there is an error during the process, it returns an AppError.
-pub fn update_note(db: &Db, key: &str, new_content: &str) -> Result<(), AppError> {
-    if !db.contains_key(key)? {
-        return Err(AppError::KeyNotFound(key.to_string()));
-    }
-
-    db.insert(key, new_content.as_bytes())?;
-    db.flush()?;
-    Ok(())
-}
-
-// This function retrieves a note from the database by its key.
-// Corresponds to `medi get <key>`
-// It returns the note content as a String.
-// If the key does not exist, it returns an AppError::KeyNotFound.
-// If there is an error reading the database or converting the content to a String, it returns an AppError.
-pub fn get_note(db: &Db, key: &str) -> Result<String, AppError> {
+pub fn get_note(db: &Db, key: &str) -> Result<Note, AppError> {
     let value_ivec = db.get(key)?
         .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
 
-    Ok(str::from_utf8(&value_ivec)?.to_string())
+    let note: Note = serde_json::from_slice(&value_ivec).map_err(AppError::from)?;
+    Ok(note)
 }
 
 // This function lists all notes in the database.
@@ -101,62 +93,51 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-/// Imports a single note, handling the overwrite logic.
-/// Returns `Ok(true)` if imported, `Ok(false)` if skipped.
-pub fn import_note(db: &Db, key: &str, content: &str, overwrite: bool) -> Result<bool, AppError> {
-    let key_exists = db.contains_key(key)?;
-
-    if key_exists && !overwrite {
-        // Key exists and we shouldn't overwrite, so we skip it.
-        return Ok(false);
-    }
-
-    // Otherwise, insert/overwrite the note.
-    db.insert(key, content.as_bytes())?;
-    db.flush()?;
-    Ok(true)
-}
-
-/// Returns all notes as a vector of (key, content) tuples.
-pub fn get_all_notes(db: &Db) -> Result<Vec<(String, String)>, AppError> {
+/// Returns all notes as a vector of `Note` structs.
+pub fn get_all_notes(db: &Db) -> Result<Vec<Note>, AppError> {
     db.iter()
+        .values() // We only need the values, which are the serialized Note JSON
         .map(|result| {
-            let (key_bytes, val_bytes) = result?;
-            let key = String::from_utf8(key_bytes.to_vec())?;
-            let val = String::from_utf8(val_bytes.to_vec())?;
-            Ok((key, val))
+            let value_bytes = result?;
+            // Deserialize the JSON bytes into a Note struct
+            let note: Note = serde_json::from_slice(&value_bytes)?;
+            Ok(note)
         })
-        .collect()
+        .collect() // This will now correctly return a Result<Vec<Note>, AppError>
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*; // Import everything from the parent module (db)
+    use super::*;
+    use crate::note::Note;
+    use chrono::Utc;
     use sled::Config;
 
     #[test]
-    fn test_insert_new_note_success() {
+    fn test_save_and_get_note_success() {
+        // Setup
         let config = Config::new().temporary(true);
         let db = config.open().unwrap();
-        let key = "new-key";
-        let content = "hello world";
+        let key = "test-key".to_string();
 
-        let result = insert_new_note(&db, key, content);
-        assert!(result.is_ok());
+        // Create a Note object to save
+        let new_note = Note {
+            key: key.clone(),
+            title: "Test Title".to_string(),
+            tags: vec!["testing".to_string()],
+            content: "Mock note content".to_string(),
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        };
 
-        let saved_value = db.get(key).unwrap().unwrap();
-        assert_eq!(saved_value, content.as_bytes());
-    }
+        // Execute save_note
+        let save_result = save_note(&db, &new_note);
+        assert!(save_result.is_ok());
 
-    #[test]
-    fn test_insert_new_note_key_exists() {
-        let config = Config::new().temporary(true);
-        let db = config.open().unwrap();
-        let key = "existing-key";
-        db.insert(key, "old value").unwrap();
-
-        let result = insert_new_note(&db, key, "new content");
-        assert!(matches!(result, Err(AppError::KeyExists(_))));
+        // Verify by getting the note back
+        let retrieved_note = get_note(&db, &key).unwrap();
+        assert_eq!(retrieved_note.content, "Mock note content");
+        assert_eq!(retrieved_note.tags, vec!["testing"]);
     }
 
     #[test]
@@ -195,17 +176,36 @@ mod tests {
     }
 
     #[test]
-    fn test_update_note() {
+    fn test_update_note_success() {
         let config = Config::new().temporary(true);
         let db = config.open().unwrap();
-        let key = "existing-note";
-        db.insert(key, "old content").unwrap();
+        let key = "my-key".to_string();
 
-        let result = update_note(&db, key, "new content");
+        let original_note = Note {
+            key: key.clone(),
+            title: "Original Title".to_string(),
+            content: "original content".to_string(),
+            tags: vec![],
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        };
+        save_note(&db, &original_note).unwrap();
+
+        let updated_note = Note {
+            key: key.clone(),
+            title: "Updated Title".to_string(),
+            content: "updated content".to_string(),
+            tags: vec!["updated".to_string()],
+            created_at: original_note.created_at, // creation time should not change
+            modified_at: Utc::now(),
+        };
+
+        let result = save_note(&db, &updated_note);
         assert!(result.is_ok());
 
-        // Verify the content was updated
-        let updated_value = db.get(key).unwrap().unwrap();
-        assert_eq!(updated_value, "new content".as_bytes());
+        let retrieved_note = get_note(&db, &key).unwrap();
+        assert_eq!(retrieved_note.content, "updated content");
+        assert_eq!(retrieved_note.title, "Updated Title");
+        assert_eq!(retrieved_note.tags, vec!["updated"]);
     }
 }

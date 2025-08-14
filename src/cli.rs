@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand, ArgGroup};
+use clap::{Args, Parser, Subcommand, ArgGroup, ValueEnum};
 use clap_complete::Shell;
 
 #[derive(Parser)]
@@ -37,6 +37,22 @@ pub struct ImportArgs {
     pub overwrite: bool,
 }
 
+#[derive(ValueEnum, Clone, Debug)]
+pub enum ExportFormat {
+    Markdown,
+    Json,
+}
+
+#[derive(Args, Debug)]
+pub struct ExportArgs {
+    /// The path for the export directory or file.
+    pub path: String,
+
+    /// The output format.
+    #[arg(long, value_enum, default_value_t = ExportFormat::Markdown)]
+    pub format: ExportFormat,
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
     /// Create a new note with the specified key.
@@ -53,6 +69,10 @@ pub enum Commands {
         /// Provide the note content directly as an argument.
         #[arg(short, long)]
         message: Option<String>,
+        #[arg(short = 'T', long)]
+        tag: Vec<String>,
+        #[arg(short, long)]
+        title: Option<String>,
     },
     /// Edit an existing note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
@@ -104,11 +124,13 @@ pub enum Commands {
     medi import --file /path/to/note.md --key my-note --overwrite")]
     Import(ImportArgs),
     /// Export notes to a file.
-    Export { path: String },
+    Export(ExportArgs),
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {
         #[arg(value_enum)]
         shell: Shell,
     },
+    /// (Temporary) Migrate old raw notes to the new JSON format.
+    Migrate,
 }
