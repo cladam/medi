@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use assert_cmd::Command;
 use tempfile::{tempdir, TempDir};
+use serde::Deserialize;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -14,6 +15,9 @@ struct TestHarness {
     editor_script_path: PathBuf,
 }
 
+/// Creates a new TestHarness instance, setting up the temporary directory
+/// and copying the mock editor script to a known location.
+/// The mock editor script is used to simulate user input in tests.
 impl TestHarness {
     fn new() -> Self {
         let temp_dir = tempdir().unwrap();
@@ -37,6 +41,12 @@ impl TestHarness {
             editor_script_path,
         }
     }
+}
+
+// A temporary struct for deserializing only the part of the JSON we need.
+#[derive(Deserialize)]
+struct NoteTags {
+    tags: Vec<String>,
 }
 
 /// Tests the `-m` flag, the most reliable non-interactive input.
@@ -134,6 +144,42 @@ fn test_core_list_and_delete_workflow() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
+fn test_new_with_tags() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // TEST: Create a new note with multiple tags.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "tagged-note",
+            "-m",
+            "content",
+            "--tag",
+            "rust",
+            "--tag",
+            "cli",
+        ])
+        .assert()
+        .success();
+
+    // VERIFY: Get the note as JSON and check if the tags are present.
+    let output = Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "tagged-note", "--json"])
+        .output()?;
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let note: NoteTags = serde_json::from_str(&output_str)?;
+
+    assert_eq!(note.tags.len(), 2);
+    assert!(note.tags.contains(&"rust".to_string()));
+    assert!(note.tags.contains(&"cli".to_string()));
+
+    Ok(())
+}
+
+#[test]
 fn test_list_empty() -> Result<(), Box<dyn std::error::Error>> {
     let harness = TestHarness::new();
     Command::cargo_bin("medi")?
@@ -168,6 +214,51 @@ fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("integration test content")); // This is from mock_editor.sh
+
+    Ok(())
+}
+
+#[test]
+fn test_edit_tags() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["new", "note-to-edit", "-m", "content", "--tag", "initial"])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["edit", "note-to-edit", "--add-tag", "added1", "--add-tag", "added2"])
+        .assert()
+        .success();
+
+    // VERIFY 1: Check for all three tags by parsing the JSON.
+    let output1 = Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "note-to-edit", "--json"])
+        .output()?;
+
+    let note1: NoteTags = serde_json::from_slice(&output1.stdout)?;
+    assert_eq!(note1.tags.len(), 3);
+    assert!(note1.tags.contains(&"initial".to_string()));
+    assert!(note1.tags.contains(&"added1".to_string()));
+    assert!(note1.tags.contains(&"added2".to_string()));
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["edit", "note-to-edit", "--rm-tag", "initial", "--rm-tag", "added1"])
+        .assert()
+        .success();
+
+    let output2 = Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "note-to-edit", "--json"])
+        .output()?;
+
+    let note2: NoteTags = serde_json::from_slice(&output2.stdout)?;
+    assert_eq!(note2.tags, vec!["added2"]);
 
     Ok(())
 }

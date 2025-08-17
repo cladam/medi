@@ -77,8 +77,21 @@ pub enum Commands {
     /// Edit an existing note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
     # Edit an existing note: Opens your default editor for long-form content.\n  \
-    medi edit \"my-long-article\"")]
-    Edit { key: String },
+    medi edit \"my-long-article\"\n\n  \
+    # Add tags to a note: Adds one or more tags to the note.\n  \
+    medi edit \"my-long-article\" --add-tag tag1 --add-tag tag2\n\n  \
+    # Remove tags from a note: Removes one or more tags from the note.\n  \
+    medi edit \"my-long-article\" --rm-tag tag1 --rm-tag tag2\n")]
+    Edit {
+        /// The key of the note to edit.
+        key: String,
+        /// Add one or more tags to the note.
+        #[arg(long, short = 'a')]
+        add_tag: Vec<String>,
+        /// Remove one or more tags from the note.
+        #[arg(long, short = 'r')]
+        rm_tag: Vec<String>,
+    },
     /// Get the content of a note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
     # Get a note: Displays the content of the note with the specified key.\n  \
@@ -90,8 +103,16 @@ pub enum Commands {
     # For example, to get a note with a specific key:\n  \
     medi list | grep -o \"my-article\" | xargs medi get\n\n  \
     # Write the output to a file:\n  \
-    medi get \"my-long-article\" > my-note.md")]
-    Get { key: String },
+    medi get \"my-long-article\" > my-note.md\n\n  \
+    # Use --json to output the note in JSON format:\n  \
+    medi get \"my-long-article\" --json")]
+    Get {
+        /// The key of the note to retrieve.
+        key: String,
+        /// Output the note in JSON format.
+        #[arg(long, short = 'j', action = clap::ArgAction::SetTrue)]
+        json: bool,
+    },
     /// List all notes.
     #[command(after_help = "EXAMPLE:\n  \
     # List all notes: Displays a list of all notes in the database.\n  \

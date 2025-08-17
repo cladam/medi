@@ -15,7 +15,7 @@ pub use cli::{Cli, Commands};
 use error::AppError;
 use tempfile::Builder as TempBuilder;
 use crate::cli::ExportFormat;
-use crate::note::Note;
+use crate::note::{JsonExport, Note};
 
 // The main logic function, which takes the parsed CLI commands
 pub fn run(cli: Cli) -> Result<(), AppError> {
@@ -55,7 +55,7 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                     key: key.clone(),
                     // Use the title flag, or default to the key
                     title: title.unwrap_or_else(|| key.clone()),
-                    tags: tag, // Use the tags from the new flag
+                    tags: tag,
                     content,
                     created_at: Utc::now(),
                     modified_at: Utc::now(),
@@ -65,8 +65,38 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 colours::success(&format!("Successfully created note: '{}'", key));
             }
         }
-        Commands::Edit { key } => {
-            let existing_note = db::get_note(&db, &key)?;
+        Commands::Edit { key, add_tag, rm_tag } => {
+            let mut existing_note = db::get_note(&db, &key)?;
+            let mut modified = false;
+
+            // Handle adding tags
+            if !add_tag.is_empty() {
+                for tag in add_tag {
+                    if !existing_note.tags.contains(&tag) {
+                        existing_note.tags.push(tag);
+                        modified = true;
+                    }
+                }
+            }
+
+            // Handle removing tags
+            if !rm_tag.is_empty() {
+                let original_len = existing_note.tags.len();
+                // Retain only the tags that are NOT in the rm_tag list.
+                existing_note.tags.retain(|tag| !rm_tag.contains(tag));
+                if existing_note.tags.len() != original_len {
+                    modified = true;
+                }
+            }
+
+            if modified {
+                existing_note.modified_at = Utc::now();
+                db::save_note(&db, &existing_note)?;
+                colours::success(&format!("Successfully updated tags for '{}'", key));
+                return Ok(());
+            }
+
+            // If no tags were modified, proceed to edit the content.
             let tempfile = TempBuilder::new()
                 .prefix("medi-note-")
                 .suffix(".md")
@@ -78,20 +108,25 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
 
             let updated_content = fs::read_to_string(&temppath)?;
             if updated_content.trim() != existing_note.content.trim() {
-                let mut updated_note = existing_note;
-                updated_note.content = updated_content;
-                updated_note.modified_at = Utc::now();
+                existing_note.content = updated_content;
+                existing_note.modified_at = Utc::now();
 
                 // This will now correctly overwrite the old note.
-                db::save_note(&db, &updated_note)?;
+                db::save_note(&db, &existing_note)?;
                 colours::success(&format!("Successfully updated note: '{}'", key));
             } else {
                 colours::info("Note content unchanged.");
             }
         }
-        Commands::Get { key } => {
+        Commands::Get { key, json } => {
             let note = db::get_note(&db, &key)?;
-            println!("{}", note.content);
+            if json {
+                // Output the full Note struct as pretty JSON
+                let json_output = serde_json::to_string_pretty(&note)?;
+                println!("{}", json_output);
+            } else {
+                println!("{}", note.content);
+            }
         }
         Commands::List => {
             let notes = db::list_notes(&db)?;
@@ -215,7 +250,13 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                         path.set_extension("json");
                     }
 
-                    let json_string = serde_json::to_string_pretty(&notes)?;
+                    let export_data = JsonExport {
+                        export_date : Utc::now(),
+                        note_count,
+                        notes
+                    };
+
+                    let json_string = serde_json::to_string_pretty(&export_data)?;
                     fs::write(&path, json_string)?;
 
                     colours::success(&format!(
