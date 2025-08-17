@@ -26,4 +26,7 @@ pub enum AppError {
 
     #[error("Key '{0}' already exists. Use 'edit' to modify it.")]
     KeyExists(String),
+
+    #[error("Self-update error: {0}")]
+    SelfUpdate(#[from] self_update::errors::Error),
 }

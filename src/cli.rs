@@ -62,7 +62,11 @@ pub enum Commands {
     # With a direct message: Perfect for quick, one-line notes. \n  \
     medi new quick-idea -m \"Remember to buy milk\"\n\n  \
     # From a pipe: Use the output of other commands as your note content.\n  \
-    echo \"This is a note from a pipe\" | medi new piped-note")]
+    echo \"This is a note from a pipe\" | medi new piped-note \n\n  \
+    # With tags: Add tags to your note for better organization.\n  \
+    medi new \"my-long-article\" --tag tag1 --tag tag2\n\n  \
+    # With a title: Specify a title for your note.\n  \
+    medi new \"my-long-article\" --title \"My Long Article\"\n")]
     New {
         /// The key (or title) for the new note.
         key: String,
@@ -154,4 +158,8 @@ pub enum Commands {
     },
     /// (Temporary) Migrate old raw notes to the new JSON format.
     Migrate,
+    /// Update the medi application.
+    #[command(name = "update", hide = true)] // Hidden from help
+    /// Checks for a new version of medi and updates it if available.
+    Update,
 }

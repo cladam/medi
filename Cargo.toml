@@ -11,7 +11,7 @@ categories = ["command-line-utilities", "development-tools"]
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.41", features = ["derive"] }
+clap = { version = "4.5.43", features = ["derive"] }
 clap_complete = "4.5.57"
 colored = "3.0.0"
 thiserror = "2.0.12"
@@ -25,6 +25,7 @@ sled = "0.34.7"
 dirs = "6.0.0"
 atty = "0.2.14"
 tempfile = "3.20.0"
+self_update = "0.42.0"
 
 [dev-dependencies]
 serial_test = "3.2.0"

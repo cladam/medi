@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 use atty::Stream;
 use chrono::Utc;
 use clap::CommandFactory;
+use colored::Colorize;
 use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
 use error::AppError;
@@ -305,6 +306,24 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 colours::success(&format!("Migration complete. Migrated {} notes.", migrated_count));
             } else {
                 colours::warn("No notes needed migration.");
+            }
+        }
+        Commands::Update => {
+            println!("{}", "--- Checking for updates ---".blue());
+            let status = self_update::backends::github::Update::configure()
+                .repo_owner("cladam")
+                .repo_name("medi")
+                .bin_name("medi")
+                .show_download_progress(true)
+                .current_version(self_update::cargo_crate_version!())
+                .build()?
+                .update()?;
+
+            println!("Update status: `{}`!", status.version());
+            if status.updated() {
+                println!("{}", "Successfully updated medi!".green());
+            } else {
+                println!("{}", "medi is already up to date.".green());
             }
         }
     }

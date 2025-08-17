@@ -44,31 +44,34 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Export**: Run `medi export ./my-notes` to write all your notes to a local directory as `.md` files.
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
-## Installation
+### Installation
 
 You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
 
-### Install directly from GitHub:
+#### Installing from crates.io
 
-It will clone, build, and install the medi binary into your Cargo bin directory (~/.cargo/bin/).
-
-```bash
-cargo install --git https://github.com/cladam/medi.git
-```
-
-### Build from a local clone:
-
-```bash
-git clone https://github.com/cladam/medi.git
-cd medi
-cargo install --path .
-```
-
-### Install from crates.io
+The easiest way to install `medi` is to download it from [crates.io](https://crates.io/crates/medi). You can do it using the following command:
 
 ```bash
 cargo install medi
 ```
+
+If you want to update `medi` to the latest version, execute the following command:
+
+```bash
+medi update
+```
+
+#### Building from source
+
+Alternatively you can build `medi` from source using Cargo:
+
+```bash
+git clone https://github.com/cladam/medi.git
+cd medi
+sudo cargo install --path . --root /usr/local
+```
+
 
 ## Usage
 
@@ -81,6 +84,10 @@ cargo install medi
   1.  **Interactively (default)**: Opens your default editor for long-form content.
       ```bash
       medi new "my-long-article"
+      # With tags: Add tags to your note for better organisation.
+      medi new "my-long-article" --tag tag1 --tag tag2
+      # With a title: Specify a title for your note.
+      medi new "my-long-article" --title "My Long Article"
       ```
 
   2.  **With a direct message**: Perfect for quick, one-line notes.
@@ -96,6 +103,12 @@ cargo install medi
 * **Edit an existing note**
   ```bash
   medi edit "my-long-article"
+  
+  # Add tags to a note
+  medi edit "my-long-article" --add-tag tag1 --add-tag tag2
+  
+  # Remove tags from a note
+  medi edit "my-long-article" --rm-tag tag1 --rm-tag tag2
   ```
 
 ### Viewing and listing notes
@@ -108,6 +121,9 @@ cargo install medi
 
   # Pipe to a Markdown renderer like mdcat
   medi get "my-first-article" | mdcat
+
+  # Get a note in Json format
+  medi get "my-first-article" --json
   ```
 
 - **List all note keys**
@@ -146,19 +162,15 @@ medi delete "my-first-article" --force
   cd my_notes_backup
   tbdflow init
   ```
-
-   **Next steps:**
-   1. Create a repository on your git provider (e.g. GitHub).
-   2. Run the following command to link it:
-      `git remote add origin <your-repository-url>`
-   3. Then run this command to push your initial commit:
-      `git push -u origin main`
+- **Export all notes to a Json document**
+  ```bash
+  medi export medi-export --format json
+  ```
 
 - **Import notes from a directory**
   Restores notes from a directory of .md files.
 
   ```bash
-
   # By default, skips any notes that already exist
   medi import --dir /path/to/notes
 
@@ -197,7 +209,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 
 - [x] All core commands (new, get, list, edit, delete, import, export).
 - [ ] Configuration file for settings (e.g., database path).
-- [ ] Support for note metadata (tags, creation dates).
+- [x] Support for note metadata (tags, creation dates).
 - [ ] `export` notes by tag.
 - [ ] Full-text search over note content.
 - [ ] Implement a `task` command for tracking the status of notes.
