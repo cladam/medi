@@ -124,6 +124,9 @@ sudo cargo install --path . --root /usr/local
 
   # Get a note in Json format
   medi get "my-first-article" --json
+
+  # Get one or several notes via a tag
+  medi get --tag my-tag
   ```
 
 - **List all note keys**
@@ -163,8 +166,14 @@ medi delete "my-first-article" --force
   tbdflow init
   ```
 - **Export all notes to a Json document**
+
   ```bash
   medi export medi-export --format json
+  ```
+- **Export notes via a tag**
+
+  ```bash
+  medi export medi-export --tag my-tag
   ```
 
 - **Import notes from a directory**
@@ -210,7 +219,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] All core commands (new, get, list, edit, delete, import, export).
 - [ ] Configuration file for settings (e.g., database path).
 - [x] Support for note metadata (tags, creation dates).
-- [ ] `export` notes by tag.
+- [x] `export` notes by tag.
 - [ ] Full-text search over note content.
 - [ ] Implement a `task` command for tracking the status of notes.
 
