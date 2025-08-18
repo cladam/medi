@@ -51,6 +51,10 @@ pub struct ExportArgs {
     /// The output format.
     #[arg(long, value_enum, default_value_t = ExportFormat::Markdown)]
     pub format: ExportFormat,
+
+    /// Export only notes with a specific tag.
+    #[arg(long, short)]
+    pub tag: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -109,12 +113,20 @@ pub enum Commands {
     # Write the output to a file:\n  \
     medi get \"my-long-article\" > my-note.md\n\n  \
     # Use --json to output the note in JSON format:\n  \
-    medi get \"my-long-article\" --json")]
+    medi get \"my-long-article\" --json\n\n  \
+    # Use --tag to retrieve all notes with a specific tag:\n  \
+    medi get --tag my-tag\n")]
     Get {
-        /// The key of the note to retrieve.
-        key: String,
-        /// Output the note in JSON format.
-        #[arg(long, short = 'j', action = clap::ArgAction::SetTrue)]
+        /// The key(s) of the note(s) to retrieve.
+        #[arg(required_unless_present("tag"))]
+        keys: Vec<String>,
+
+        /// Retrieve all notes with a specific tag.
+        #[arg(long, short, conflicts_with = "keys")]
+        tag: Vec<String>,
+
+        /// Output the full note data as JSON.
+        #[arg(long, action = clap::ArgAction::SetTrue)]
         json: bool,
     },
     /// List all notes.

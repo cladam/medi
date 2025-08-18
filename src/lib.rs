@@ -119,14 +119,36 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                 colours::info("Note content unchanged.");
             }
         }
-        Commands::Get { key, json } => {
-            let note = db::get_note(&db, &key)?;
-            if json {
-                // Output the full Note struct as pretty JSON
-                let json_output = serde_json::to_string_pretty(&note)?;
-                println!("{}", json_output);
+        Commands::Get { keys, tag, json } => {
+            let notes_to_show = if !tag.is_empty() {
+                // If tags are provided, retrieve all notes with those tags
+                let all_notes = db::get_all_notes(&db)?;
+                all_notes
+                    .into_iter()
+                    .filter(|note| note.tags.iter().any(|t| tag.contains(t)))
+                    .collect::<Vec<_>>()
             } else {
-                println!("{}", note.content);
+                // If keys are provided, retrieve those specific notes
+                let mut notes = Vec::new();
+                for key in keys {
+                    notes.push(db::get_note(&db, &key)?);
+                }
+                notes
+            };
+
+            if notes_to_show.is_empty() {
+                colours::warn("No matching notes found.");
+                return Ok(());
+            }
+
+            // Print the filtered notes
+            for (i, note) in notes_to_show.iter().enumerate() {
+                if i > 0 { println!("---"); } // Separator for multiple notes
+                if json {
+                    println!("{}", serde_json::to_string_pretty(note)?);
+                } else {
+                    println!("{}", note.content);
+                }
             }
         }
         Commands::List => {
@@ -219,11 +241,21 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
             }
         }
         Commands::Export(args) => {
-            let notes = db::get_all_notes(&db)?;
-            let note_count = notes.len();
+            let all_notes = db::get_all_notes(&db)?;
 
+            // Filter notes by tag if the --tag flag was provided
+            let notes_to_export = if !args.tag.is_empty() {
+                all_notes
+                    .into_iter()
+                    .filter(|note| args.tag.iter().all(|t| note.tags.contains(t)))
+                    .collect()
+            } else {
+                all_notes // Otherwise, export all notes
+            };
+
+            let note_count = notes_to_export.len();
             if note_count == 0 {
-                colours::warn("No notes to export.");
+                colours::warn("No matching notes to export.");
                 return Ok(());
             }
 
@@ -234,7 +266,8 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                     fs::create_dir_all(export_path)?;
 
                     // The loop variable is now a `Note` struct
-                    for note in notes {
+                    for note in notes_to_export {
+                        // Use the note's key as the filename
                         let file_path = export_path.join(format!("{}.md", note.key));
                         // Write the note's .content, not the whole note object
                         fs::write(file_path, &note.content)?;
@@ -254,7 +287,7 @@ pub fn run(cli: Cli) -> Result<(), AppError> {
                     let export_data = JsonExport {
                         export_date : Utc::now(),
                         note_count,
-                        notes
+                        notes: notes_to_export,
                     };
 
                     let json_string = serde_json::to_string_pretty(&export_data)?;
