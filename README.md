@@ -277,7 +277,7 @@ medi generate-completion fish | source
 This section tracks the implementation status of `medi`'s features. Contributions are welcome!
 
 - [x] All core commands (new, get, list, edit, delete, import, export).
-- [ ] Configuration file for settings (e.g., database path).
+- [x] Configuration file for settings (e.g., database path).
 - [x] Support for note metadata (tags, creation dates).
 - [x] `export` notes by tag.
 - [ ] Full-text search over note content.
