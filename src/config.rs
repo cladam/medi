@@ -12,13 +12,16 @@ impl Default for Config {
     fn default() -> Self {
         // Use the idiomatic data directory for the database.
         let default_db_path = dirs::data_dir()
-            .expect("Could not find data directory")
-            .join("medi/medi_db");
+            .unwrap_or_else(|| dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")).join(".medi"))
+            .join("medi_db");
 
-        // The export directory would be in the user's Documents folder.
+        // Use the Documents directory if available, otherwise fall back to a
+        // directory inside the user's home.
         let default_export_dir = dirs::document_dir()
-            .expect("Could not find document directory")
-            .join("medi_exports");
+            .or_else(|| dirs::home_dir().map(|mut path| {
+                path.push("medi_exports");
+                path
+            }));
 
         Config {
             db_path: Option::from(default_db_path),

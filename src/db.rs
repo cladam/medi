@@ -59,22 +59,6 @@ pub fn get_note(db: &Db, key: &str) -> Result<Note, AppError> {
     Ok(note)
 }
 
-// This function lists all notes in the database.
-// Corresponds to `medi list`
-// It returns a vector of note keys (strings).
-// If the database is empty, it returns an empty vector.
-// If there is an error reading the database, it returns an AppError.
-pub fn list_notes(db: &Db) -> Result<Vec<String>, AppError> {
-    db.iter()
-        .keys()
-        .map(|result| {
-            let key_bytes = result?;
-            let key_str = str::from_utf8(&key_bytes)?;
-            Ok(key_str.to_string())
-        })
-        .collect()
-}
-
 // This function deletes a note from the database by its key.
 // Corresponds to `medi delete <key>`
 // It checks if the key exists in the database.
@@ -138,27 +122,44 @@ mod tests {
     }
 
     #[test]
-    fn test_list_notes() {
+    fn test_get_all_notes_success() {
         let config = Config::new().temporary(true);
-        let db = config.open().expect("Failed to open temporary db");
+        let db = config.open().unwrap();
 
-        db.insert("zeta-key", "").unwrap();
-        db.insert("alpha-key", "").unwrap();
-        db.insert("gamma-key", "").unwrap();
+        // Create and save two notes.
+        let note1 = Note {
+            key: "note-a".to_string(),
+            title: "Note A".to_string(),
+            content: "content a".to_string(),
+            tags: vec![],
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        };
+        let note2 = Note {
+            key: "note-b".to_string(),
+            title: "Note B".to_string(),
+            content: "content b".to_string(),
+            tags: vec![],
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        };
+        save_note(&db, &note1).unwrap();
+        save_note(&db, &note2).unwrap();
 
-        let keys = list_notes(&db).unwrap();
+        let all_notes = get_all_notes(&db).unwrap();
 
-        assert_eq!(keys.len(), 3);
-        assert_eq!(keys, vec!["alpha-key", "gamma-key", "zeta-key"]);
+        assert_eq!(all_notes.len(), 2);
+        // Check if we can find one of the notes by its key.
+        assert!(all_notes.iter().any(|n| n.key == "note-a"));
     }
 
     #[test]
-    fn test_list_notes_empty_db() {
+    fn test_get_all_notes_empty_db() {
         let config = Config::new().temporary(true);
-        let db = config.open().expect("Failed to open temporary db");
+        let db = config.open().unwrap();
 
-        let keys = list_notes(&db).unwrap();
-        assert!(keys.is_empty());
+        let all_notes = get_all_notes(&db).unwrap();
+        assert!(all_notes.is_empty());
     }
 
     #[test]
