@@ -176,19 +176,32 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
   medi get --tag my-tag
   ```
 
-- **List all note keys**
+* **List all notes**
 
-  ```bash
-  medi list
-  ```
+    The `list` command provides a rich overview of your notes, including their keys and tags.
 
-  _Output:_
+    ```bash
+    medi list
+    ```
+    *Output:*
+    ```
+    Notes:
+    - medi-readme [#medi #README]
+    - tbdflow-readme [#tbdflow #README]
+    - tbdflow-gif-post [#blog]
+    ```
 
-  ```
-  Notes:
-  - my-first-article
-  - another-note
-  ```
+* **Sort your notes**
+
+    You can sort the list by creation or last modification date using the `--sort-by` flag. The default is to sort alphabetically by key.
+
+    ```bash
+    # Sort by the most recently modified notes
+    medi list --sort-by modified
+
+    # Sort by when the notes were created
+    medi list --sort-by created
+    ```
 
 ### Deleting a Note
 

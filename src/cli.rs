@@ -14,6 +14,15 @@ pub struct Cli {
     pub command: Commands,
 }
 
+// Define the possible sorting options
+#[derive(ValueEnum, Clone, Debug, Default)]
+pub enum SortBy {
+    #[default] // Default to sorting by key (alphabetical)
+    Key,
+    Created,
+    Modified,
+}
+
 #[derive(Args, Debug)]
 #[command(group(
     ArgGroup::new("input_source")
@@ -135,8 +144,14 @@ pub enum Commands {
     medi list\n\n  \
     # Use this command to quickly see all your notes and their keys.\n  \
     # You can also pipe the output to other commands for further processing.\n  \
-    medi list | grep -o \"my-article\" | xargs medi get")]
-    List,
+    medi list | grep -o \"my-article\" | xargs medi get\n\n  \
+    # Use --sort-by to sort the notes by key, created date, or modified date\n \
+    medi list --sort-by key")]
+    List {
+        /// The field to sort the notes by.
+        #[arg(long, short, value_enum, default_value_t = SortBy::Key)]
+        sort_by: SortBy,
+    },
     /// Delete a note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
     # Delete a note: Removes the note with the specified key.\n  \

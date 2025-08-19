@@ -17,7 +17,7 @@ pub use cli::{Cli, Commands};
 use config::Config;
 use error::AppError;
 use tempfile::Builder as TempBuilder;
-use crate::cli::ExportFormat;
+use crate::cli::{ExportFormat, SortBy};
 use crate::note::{JsonExport, Note};
 
 // The main logic function, which takes the parsed CLI commands
@@ -153,16 +153,40 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         }
-        Commands::List => {
-            let notes = db::list_notes(&db)?;
+        Commands::List { sort_by } => {
+            let mut notes = db::get_all_notes(&db)?;
             if notes.is_empty() {
                 colours::warn("No notes found.");
-            } else {
-                colours::info("Notes:");
-                for note in notes {
-                    println!("- {}", note);
-                }
             }
+
+            // Sorting logic
+            match sort_by {
+                SortBy::Key => notes.sort_by(|a, b| a.key.cmp(&b.key)),
+                SortBy::Created => notes.sort_by(|a, b| b.created_at.cmp(&a.created_at)), // Newest first
+                SortBy::Modified => notes.sort_by(|a, b| b.modified_at.cmp(&a.modified_at)), // Newest first
+            }
+
+            // Print rich output
+            println!("{}:", "Notes".bold().underline());
+            for note in notes {
+                // Format the tags into a colored string like `[#tag1 #tag2]`
+                let tags_str = if note.tags.is_empty() {
+                    "".to_string()
+                } else {
+                    format!(
+                        " [{}]",
+                        note.tags
+                            .iter()
+                            .map(|t| format!("#{}", t).cyan().to_string())
+                            .collect::<Vec<String>>()
+                            .join(" ")
+                    )
+                };
+
+                // Print the formatted line
+                println!("- {}{}", note.key.green().bold(), tags_str);
+            }
+
         }
         Commands::Delete { key, force } => {
             let confirmed = if force {
