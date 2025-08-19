@@ -44,6 +44,30 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Export**: Run `medi export ./my-notes` to write all your notes to a local directory as `.md` files.
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
+---
+
+## ⚠️ Breaking Change (for versions >= 0.6.0)
+
+The default database location has been updated to follow standard conventions for each operating system. If you are updating from an older version of `medi`, you **must manually move your database** to the new location to keep your existing notes.
+
+**To migrate your data:**
+
+1.  **Find your old database folder** at `~/.medi/medi_db`.
+2.  **Move it** to the new standard location for your OS:
+    * **macOS:** Move it to `~/Library/Application Support/medi/`
+        ```bash
+        mv ~/.medi/medi_db ~/Library/Application\ Support/medi/
+        ```
+    * **Linux:** Move it to `~/.local/share/medi/`
+        ```bash
+        mv ~/.medi/medi_db ~/.local/share/medi/
+        ```
+    * **Windows:** Move it to `%APPDATA%\medi\` (usually `C:\Users\<user>\AppData\Roaming\medi\`)
+
+This one-time move will ensure `medi` is a good citizen on your filesystem. New installations will automatically use the correct path.
+
+---
+
 ### Installation
 
 You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
@@ -72,6 +96,29 @@ cd medi
 sudo cargo install --path . --root /usr/local
 ```
 
+## Configuration
+
+On the first run, `medi` will automatically create a default configuration file at the standard location for your operating system:
+
+  * **macOS**: `~/Library/Application Support/medi/config.toml`
+  * **Linux**: `~/.config/medi/config.toml`
+  * **Windows**: `C:\Users\<user>\AppData\Roaming\medi\config.toml`
+
+You can edit this file to customize `medi`'s behaviour.
+
+### Example `config.toml`
+
+```toml
+# Path to the database file.
+# You can change this to store your notes in a different location,
+# for example, inside a cloud-synced folder like Dropbox.
+db_path = "/Users/cladam/Library/Application Support/medi/medi_db"
+
+# Default directory for the `medi export` command.
+# If this is set, you can run `medi export` without specifying a path.
+# Leave it as an empty string ("") if you don't want a default.
+default_export_dir = "/Users/cladam/Documents/medi_backups"
+```
 
 ## Usage
 
