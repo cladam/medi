@@ -193,14 +193,14 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
 ### Deleting a Note
 
 - **Delete a note**
-You will be prompted for confirmation.
+  You will be prompted for confirmation.
 
-```bash
-medi delete "my-first-article"
+  ```bash
+  medi delete "my-first-article"
 
-# Skip the confirmation prompt
-medi delete "my-first-article" --force
-```
+  # Skip the confirmation prompt
+  medi delete "my-first-article" --force
+  ```
 
 ### Versioning with Export/Import
 
