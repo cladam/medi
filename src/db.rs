@@ -3,6 +3,7 @@ use sled::Db;
 use std::{env, fs, str};
 use std::path::PathBuf;
 use serde_json;
+use crate::config::Config;
 use crate::note::Note;
 
 // Helper function to open the database
@@ -12,19 +13,15 @@ use crate::note::Note;
 // If the database cannot be opened, it returns an AppError::Sled.
 // If the home directory cannot be found, it returns an AppError::Io.
 // If the database is opened successfully, it returns a sled::Db instance.
-pub fn open() -> Result<Db, AppError> {
+pub fn open(config: Config) -> Result<Db, AppError> {
     let db_path = match env::var("MEDI_DB_PATH") {
-        Ok(db_path) => PathBuf::from(db_path),
-        Err(_) => {
-            // Use the home directory.
-            let home_dir = dirs::home_dir().ok_or_else(|| {
-                AppError::Io(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "Could not find home directory",
-                ))
-            })?;
-            home_dir.join(".medi").join("medi_db")
-        }
+        Ok(path_str) => PathBuf::from(path_str),
+        Err(_) => config.db_path.clone().unwrap_or_else(|| {
+            // Default path logic
+            let mut path = dirs::home_dir().expect("Could not find home directory.");
+            path.push(".medi/medi_db");
+            path
+        }),
     };
 
     // Ensure the parent directory exists.

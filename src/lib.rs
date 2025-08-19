@@ -3,6 +3,7 @@ mod db;
 mod error;
 pub mod colours;
 mod note;
+pub mod config;
 
 use std::{fs, io};
 use std::io::Read;
@@ -13,15 +14,16 @@ use clap::CommandFactory;
 use colored::Colorize;
 use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
+use config::Config;
 use error::AppError;
 use tempfile::Builder as TempBuilder;
 use crate::cli::ExportFormat;
 use crate::note::{JsonExport, Note};
 
 // The main logic function, which takes the parsed CLI commands
-pub fn run(cli: Cli) -> Result<(), AppError> {
+pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     // Open the database
-    let db = db::open()?;
+    let db = db::open(config)?;
 
     match cli.command {
         Commands::New { key, message, title, tag } => {
