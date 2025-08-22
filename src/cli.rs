@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand, ArgGroup, ValueEnum};
+use clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
 use clap_complete::Shell;
 
 #[derive(Parser)]

@@ -1,5 +1,5 @@
-use medi::{run, config, Cli, colours};
 use clap::Parser;
+use medi::{colours, config, run, Cli};
 
 /// Main entry point for medi
 /// The application logic is contained in lib.rs, and this file is a thin wrapper responsible

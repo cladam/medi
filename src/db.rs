@@ -1,10 +1,10 @@
-use crate::error::AppError;
-use sled::Db;
-use std::{env, fs, str};
-use std::path::PathBuf;
-use serde_json;
 use crate::config::Config;
+use crate::error::AppError;
 use crate::note::Note;
+use serde_json;
+use sled::Db;
+use std::path::PathBuf;
+use std::{env, fs, str};
 
 // Helper function to open the database
 // It checks the environment variable `MEDI_DB_PATH` for the database path.
@@ -52,7 +52,8 @@ pub fn save_note(db: &Db, note: &Note) -> Result<(), AppError> {
 /// If the key exists, it deserializes the note content from JSON and returns it.
 /// If there is an error during the process, it returns an AppError.
 pub fn get_note(db: &Db, key: &str) -> Result<Note, AppError> {
-    let value_ivec = db.get(key)?
+    let value_ivec = db
+        .get(key)?
         .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
 
     let note: Note = serde_json::from_slice(&value_ivec).map_err(AppError::from)?;

@@ -1,9 +1,9 @@
+use assert_cmd::Command;
 use predicates::prelude::*;
+use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
-use assert_cmd::Command;
 use tempfile::{tempdir, TempDir};
-use serde::Deserialize;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -230,7 +230,14 @@ fn test_edit_tags() -> Result<(), Box<dyn std::error::Error>> {
 
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
-        .args(["edit", "note-to-edit", "--add-tag", "added1", "--add-tag", "added2"])
+        .args([
+            "edit",
+            "note-to-edit",
+            "--add-tag",
+            "added1",
+            "--add-tag",
+            "added2",
+        ])
         .assert()
         .success();
 
@@ -248,7 +255,14 @@ fn test_edit_tags() -> Result<(), Box<dyn std::error::Error>> {
 
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
-        .args(["edit", "note-to-edit", "--rm-tag", "initial", "--rm-tag", "added1"])
+        .args([
+            "edit",
+            "note-to-edit",
+            "--rm-tag",
+            "initial",
+            "--rm-tag",
+            "added1",
+        ])
         .assert()
         .success();
 
@@ -271,7 +285,13 @@ fn test_import_single_file() -> Result<(), Box<dyn std::error::Error>> {
 
     Command::cargo_bin("medi")?
         .env("MEDI_DB_PATH", &harness.db_path)
-        .args(["import", "--file", &import_file_path.to_string_lossy().as_ref(), "--key", "imported-note"])
+        .args([
+            "import",
+            "--file",
+            &import_file_path.to_string_lossy().as_ref(),
+            "--key",
+            "imported-note",
+        ])
         .assert()
         .success()
         // The assertion is now simpler and matches your actual output

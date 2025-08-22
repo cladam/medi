@@ -1,24 +1,24 @@
 mod cli;
+pub mod colours;
+pub mod config;
 mod db;
 mod error;
-pub mod colours;
 mod note;
-pub mod config;
 
-use std::{fs, io};
-use std::io::Read;
-use std::path::{Path, PathBuf};
+use crate::cli::{ExportFormat, SortBy};
+use crate::note::{JsonExport, Note};
 use atty::Stream;
 use chrono::Utc;
 use clap::CommandFactory;
-use colored::Colorize;
-use dialoguer::Confirm;
 pub use cli::{Cli, Commands};
+use colored::Colorize;
 use config::Config;
+use dialoguer::Confirm;
 use error::AppError;
+use std::io::Read;
+use std::path::{Path, PathBuf};
+use std::{fs, io};
 use tempfile::Builder as TempBuilder;
-use crate::cli::{ExportFormat, SortBy};
-use crate::note::{JsonExport, Note};
 
 // The main logic function, which takes the parsed CLI commands
 pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
@@ -26,7 +26,12 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     let db = db::open(config)?;
 
     match cli.command {
-        Commands::New { key, message, title, tag } => {
+        Commands::New {
+            key,
+            message,
+            title,
+            tag,
+        } => {
             // Check for key existence here, in the application logic.
             if db::key_exists(&db, &key)? {
                 return Err(AppError::KeyExists(key));
@@ -68,7 +73,11 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 colours::success(&format!("Successfully created note: '{}'", key));
             }
         }
-        Commands::Edit { key, add_tag, rm_tag } => {
+        Commands::Edit {
+            key,
+            add_tag,
+            rm_tag,
+        } => {
             let mut existing_note = db::get_note(&db, &key)?;
             let mut modified = false;
 
@@ -145,7 +154,9 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
 
             // Print the filtered notes
             for (i, note) in notes_to_show.iter().enumerate() {
-                if i > 0 { println!("---"); } // Separator for multiple notes
+                if i > 0 {
+                    println!("---");
+                } // Separator for multiple notes
                 if json {
                     println!("{}", serde_json::to_string_pretty(note)?);
                 } else {
@@ -186,7 +197,6 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 // Print the formatted line
                 println!("- {}{}", note.key.green().bold(), tags_str);
             }
-
         }
         Commands::Delete { key, force } => {
             let confirmed = if force {
@@ -202,7 +212,10 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 if db::delete_note(&db, &key).is_ok() {
                     colours::success(&format!("Successfully deleted note: '{}'", key));
                 } else {
-                    colours::error(&format!("Failed to delete note: '{}'. It may not exist.", key));
+                    colours::error(&format!(
+                        "Failed to delete note: '{}'. It may not exist.",
+                        key
+                    ));
                 }
             } else {
                 colours::warn("Deletion cancelled.");
@@ -311,7 +324,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     }
 
                     let export_data = JsonExport {
-                        export_date : Utc::now(),
+                        export_date: Utc::now(),
                         note_count,
                         notes: notes_to_export,
                     };
@@ -321,7 +334,8 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
 
                     colours::success(&format!(
                         "Successfully exported {} notes as JSON to '{}'",
-                        note_count, path.display()
+                        note_count,
+                        path.display()
                     ));
                 }
             }
@@ -362,7 +376,10 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             }
 
             if migrated_count > 0 {
-                colours::success(&format!("Migration complete. Migrated {} notes.", migrated_count));
+                colours::success(&format!(
+                    "Migration complete. Migrated {} notes.",
+                    migrated_count
+                ));
             } else {
                 colours::warn("No notes needed migration.");
             }
