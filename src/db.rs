@@ -5,6 +5,7 @@ use serde_json;
 use sled::Db;
 use std::path::PathBuf;
 use std::{env, fs, str};
+use tantivy::{doc, Index, IndexWriter, TantivyDocument, Term};
 
 // Helper function to open the database
 // It checks the environment variable `MEDI_DB_PATH` for the database path.
@@ -43,6 +44,61 @@ pub fn save_note(db: &Db, note: &Note) -> Result<(), AppError> {
     db.insert(&note.key, json_bytes)?;
     db.flush()?;
     Ok(())
+}
+
+/// Saves a Note to the database and updates the search index.
+pub fn save_note_with_index(db: &Db, note: &Note, index: &Index) -> Result<(), AppError> {
+    // Save to the primary database first
+    save_note(db, note)?;
+
+    // Update the search index
+    let mut index_writer: tantivy::IndexWriter<tantivy::TantivyDocument> = index.writer(50_000_000)?;
+    let schema = index.schema();
+    let key_field = schema.get_field("key")?;
+
+    // For updates, first delete the old document
+    let key_term = Term::from_field_text(key_field, &note.key);
+    index_writer.delete_term(key_term);
+
+    // Add the new document
+    let key = schema.get_field("key")?;
+    let title = schema.get_field("title")?;
+    let content = schema.get_field("content")?;
+    let tags_field = schema.get_field("tags")?;
+
+    let mut doc = doc!(
+        key => note.key.clone(),
+        title => note.title.clone(),
+        content => note.content.clone(),
+    );
+
+    // Add each tag as a separate field value
+    for tag in &note.tags {
+        doc.add_text(tags_field, tag);
+    }
+
+    index_writer.add_document(doc)?;
+
+    // Commit changes to the index
+    index_writer.commit()?;
+    Ok(())
+}
+
+/// Deletes a note from the database and the search index.
+pub fn delete_note_with_index(db: &Db, key: &str, index: &Index) -> Result<(), AppError> {
+    // Delete from the primary database first
+    match delete_note(db, key) {
+        Ok(()) => {
+            // Remove from the search index only if the note existed and was deleted
+            let mut index_writer: IndexWriter<TantivyDocument> = index.writer(50_000_000)?;
+            let key_field = index.schema().get_field("key")?;
+            let key_term = Term::from_field_text(key_field, key);
+            index_writer.delete_term(key_term);
+            index_writer.commit()?;
+            Ok(())
+        }
+        Err(e) => Err(e),
+    }
 }
 
 /// Retrieves a Note object from the database by deserializing it from JSON.

@@ -4,6 +4,7 @@ pub mod config;
 mod db;
 mod error;
 mod note;
+mod search;
 
 use crate::cli::{ExportFormat, SortBy};
 use crate::note::{JsonExport, Note};
@@ -20,10 +21,28 @@ use std::path::{Path, PathBuf};
 use std::{fs, io};
 use tempfile::Builder as TempBuilder;
 
+pub fn initialise_search_index(config: &Config) -> Result<tantivy::Index, AppError> {
+    let search_index_path = config
+        .db_path
+        .as_ref()
+        .map(|db_path| db_path.parent().unwrap_or(db_path).join("search_index"))
+        .unwrap_or_else(|| {
+            dirs::data_dir()
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join("medi")
+                .join("search_index")
+        });
+
+    let index = search::open_index(&search_index_path)?;
+    Ok(index)
+}
+
 // The main logic function, which takes the parsed CLI commands
 pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     // Open the database
-    let db = db::open(config)?;
+    let db = db::open(config.clone())?; // Clone config for search index init
+    // Initialise the search index
+    let search_index = initialise_search_index(&config).map_err(|e| AppError::Search(e.to_string()))?;
 
     match cli.command {
         Commands::New {

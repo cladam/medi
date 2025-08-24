@@ -29,4 +29,10 @@ pub enum AppError {
 
     #[error("Self-update error: {0}")]
     SelfUpdate(#[from] self_update::errors::Error),
+
+    #[error("Search operation failed: {0}")]
+    Search(String),
+
+    #[error("Tantivy error: {0}")]
+    Tantivy(#[from] tantivy::error::TantivyError),
 }
