@@ -58,6 +58,18 @@ pub fn add_note_to_index(
     Ok(())
 }
 
+/// Deletes a document from the index based on its key.
+pub fn delete_note_from_index(
+    key: &str,
+    index_writer: &mut IndexWriter<tantivy::TantivyDocument>,
+) -> Result<(), tantivy::error::TantivyError> {
+    let schema = &SCHEMA;
+    let key_field = schema.get_field("key")?;
+    let key_term = Term::from_field_text(key_field, key);
+    index_writer.delete_term(key_term);
+    Ok(())
+}
+
 /// Searches the index for a query and returns a Vec of matching note keys.
 pub fn search_notes(
     index: &Index,

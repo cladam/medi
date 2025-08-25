@@ -88,7 +88,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     modified_at: Utc::now(),
                 };
                 // Save the entire Note object
-                db::save_note(&db, &new_note)?;
+                db::save_note_with_index(&db, &new_note, &search_index)?;
                 colours::success(&format!("Successfully created note: '{}'", key));
             }
         }
@@ -122,7 +122,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
 
             if modified {
                 existing_note.modified_at = Utc::now();
-                db::save_note(&db, &existing_note)?;
+                db::save_note_with_index(&db, &existing_note, &search_index)?;
                 colours::success(&format!("Successfully updated tags for '{}'", key));
                 return Ok(());
             }
@@ -142,8 +142,8 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 existing_note.content = updated_content;
                 existing_note.modified_at = Utc::now();
 
-                // This will now correctly overwrite the old note.
-                db::save_note(&db, &existing_note)?;
+                // This will overwrite the old note.
+                db::save_note_with_index(&db, &existing_note, &search_index)?;
                 colours::success(&format!("Successfully updated note: '{}'", key));
             } else {
                 colours::info("Note content unchanged.");
@@ -228,7 +228,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             };
 
             if confirmed {
-                if db::delete_note(&db, &key).is_ok() {
+                if db::delete_note_with_index(&db, &key, &search_index).is_ok() {
                     colours::success(&format!("Successfully deleted note: '{}'", key));
                 } else {
                     colours::error(&format!(
