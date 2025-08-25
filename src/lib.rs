@@ -56,8 +56,9 @@ fn format_tags(tags: &[String]) -> String {
 pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     // Open the database
     let db = db::open(config.clone())?; // Clone config for search index init
-    // Initialise the search index
-    let search_index = initialise_search_index(&config).map_err(|e| AppError::Search(e.to_string()))?;
+                                        // Initialise the search index
+    let search_index =
+        initialise_search_index(&config).map_err(|e| AppError::Search(e.to_string()))?;
 
     match cli.command {
         Commands::New {
@@ -289,10 +290,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             // 4. Commit the changes.
             index_writer.commit()?;
 
-            colours::success(&format!(
-                "Successfully reindexed {} notes.",
-                note_count
-            ));
+            colours::success(&format!("Successfully reindexed {} notes.", note_count));
         }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.

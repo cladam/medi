@@ -53,7 +53,8 @@ pub fn save_note_with_index(db: &Db, note: &Note, index: &Index) -> Result<(), A
     save_note(db, note)?;
 
     // Update the search index
-    let mut index_writer: tantivy::IndexWriter<tantivy::TantivyDocument> = index.writer(50_000_000)?;
+    let mut index_writer: tantivy::IndexWriter<tantivy::TantivyDocument> =
+        index.writer(50_000_000)?;
 
     // For updates, first delete the old document using the search module function.
     search::delete_note_from_index(&note.key, &mut index_writer)?;
