@@ -5,6 +5,7 @@ mod db;
 mod error;
 mod note;
 mod search;
+mod task;
 
 use crate::cli::{ExportFormat, SortBy};
 use crate::note::{JsonExport, Note};
@@ -414,6 +415,10 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         }
+        Commands::Task(task_cmd) => match task_cmd {
+            // TODO: Implement task commands
+            _ => colours::warn("Task commands are not yet implemented."),
+        },
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();
             let bin_name = cmd.get_name().to_string();

@@ -66,6 +66,28 @@ pub struct ExportArgs {
     pub tag: Vec<String>,
 }
 
+#[derive(Subcommand, Clone, Debug)]
+pub enum TaskCommands {
+    /// Add a new task linked to a note.
+    Add {
+        /// The key of the note this task is for.
+        note_key: String,
+        /// The description of the task.
+        description: String,
+    },
+    /// List all open tasks.
+    List,
+    /// Mark a task as done.
+    Done {
+        /// The ID of the task to complete.
+        task_id: u64,
+    },
+    Prio {
+        /// The ID of the task to prioritize.
+        task_id: u64,
+    },
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
     /// Create a new note with the specified key.
@@ -191,6 +213,18 @@ pub enum Commands {
     Import(ImportArgs),
     /// Export notes to a file.
     Export(ExportArgs),
+    /// Manage tasks linked to notes.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Add a new task linked to a note:\n  \
+    medi task add my-note \"Finish writing the introduction\"\n\n  \
+    # List all open tasks:\n  \
+    medi task list\n\n  \
+    # Mark a task as done:\n  \
+    medi task done 1\n")]
+    Task {
+        #[command(subcommand)]
+        command: TaskCommands,
+    },
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {
