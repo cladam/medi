@@ -415,9 +415,15 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         }
-        Commands::Task(task_cmd) => match task_cmd {
-            // TODO: Implement task commands
-            _ => colours::warn("Task commands are not yet implemented."),
+        Commands::Task { command } => match command {
+            // Handle each subcommand from the `TaskCommands` enum.
+            // For now, they all point to the placeholder message.
+            cli::TaskCommands::Add { .. }
+            | cli::TaskCommands::List { .. }
+            | cli::TaskCommands::Done { .. }
+            | cli::TaskCommands::Prio { .. } => {
+                colours::warn("Task commands are not yet implemented.")
+            }
         },
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();
