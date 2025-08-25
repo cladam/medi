@@ -44,30 +44,6 @@ To version control your work with Git, `medi` provides a simple and deliberate w
 - **Export**: Run `medi export ./my-notes` to write all your notes to a local directory as `.md` files.
 - **Commit**: Use Git to commit the exported directory, giving you a complete, version-controlled snapshot of your work.
 
----
-
-## ⚠️ Breaking Change (for versions >= 0.6.0)
-
-The default database location has been updated to follow standard conventions for each operating system. If you are updating from an older version of `medi`, you **must manually move your database** to the new location to keep your existing notes.
-
-**To migrate your data:**
-
-1.  **Find your old database folder** at `~/.medi/medi_db`.
-2.  **Move it** to the new standard location for your OS:
-    * **macOS:** Move it to `~/Library/Application Support/medi/`
-        ```bash
-        mv ~/.medi/medi_db ~/Library/Application\ Support/medi/
-        ```
-    * **Linux:** Move it to `~/.local/share/medi/`
-        ```bash
-        mv ~/.medi/medi_db ~/.local/share/medi/
-        ```
-    * **Windows:** Move it to `%APPDATA%\medi\` (usually `C:\Users\<user>\AppData\Roaming\medi\`)
-
-This one-time move will ensure `medi` is a good citizen on your filesystem. New installations will automatically use the correct path.
-
----
-
 ### Installation
 
 You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
@@ -203,6 +179,36 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
     medi list --sort-by created
     ```
 
+### Searching & Indexing
+
+`medi` includes a full-text search engine (`tantivy`) that lets you find notes by their content, title, or tags.
+
+**Search for a note**
+```bash
+# Find all notes containing the word "rust"
+medi search rust
+
+# Search for a phrase
+medi search "database design"
+```
+
+_Output_:
+
+```
+**Found matching notes**:
+<ul>**Search Results**</ul>
+- medi-blogpost
+- rust-cli-ideas
+```
+
+**Rebuild the search index**
+
+If your search index ever gets out of sync or you're setting up `medi` for the first time with an existing database, you can rebuild the entire index.
+
+```bash
+medi reindex
+```
+
 ### Deleting a Note
 
 - **Delete a note**
@@ -280,6 +286,6 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Configuration file for settings (e.g., database path).
 - [x] Support for note metadata (tags, creation dates).
 - [x] `export` notes by tag.
-- [ ] Full-text search over note content.
+- [x] Full-text search over note content.
 - [ ] Implement a `task` command for tracking the status of notes.
 
