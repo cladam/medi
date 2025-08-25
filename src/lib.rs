@@ -419,45 +419,6 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             let bin_name = cmd.get_name().to_string();
             clap_complete::generate(shell, &mut cmd, bin_name, &mut io::stdout());
         }
-        Commands::Migrate => {
-            colours::info("Starting migration of old notes to new format...");
-            let mut migrated_count = 0;
-
-            // Iterate over every raw entry in the database
-            for result in db.iter() {
-                let (key_bytes, val_bytes) = result?;
-
-                // Try to parse the value as a Note. If it fails, it's an old raw string.
-                if serde_json::from_slice::<Note>(&val_bytes).is_err() {
-                    // It's an old note, let's migrate it.
-                    let key = String::from_utf8(key_bytes.to_vec())?;
-                    let content = String::from_utf8(val_bytes.to_vec())?;
-
-                    let new_note = Note {
-                        key: key.clone(),
-                        title: key.clone(), // Default title to key
-                        tags: vec![],
-                        content,
-                        created_at: Utc::now(),
-                        modified_at: Utc::now(),
-                    };
-
-                    // Save the new, structured Note back to the database, overwriting the old one.
-                    db::save_note(&db, &new_note)?;
-                    migrated_count += 1;
-                    println!("- Migrated '{}'", key);
-                }
-            }
-
-            if migrated_count > 0 {
-                colours::success(&format!(
-                    "Migration complete. Migrated {} notes.",
-                    migrated_count
-                ));
-            } else {
-                colours::warn("No notes needed migration.");
-            }
-        }
         Commands::Update => {
             println!("{}", "--- Checking for updates ---".blue());
             let status = self_update::backends::github::Update::configure()

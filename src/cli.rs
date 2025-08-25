@@ -197,8 +197,6 @@ pub enum Commands {
         #[arg(value_enum)]
         shell: Shell,
     },
-    /// (Temporary) Migrate old raw notes to the new JSON format.
-    Migrate,
     /// Update the medi application.
     #[command(name = "update", hide = true)] // Hidden from help
     /// Checks for a new version of medi and updates it if available.
