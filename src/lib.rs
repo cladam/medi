@@ -241,8 +241,39 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             }
         }
         Commands::Search { query } => {
-            // Not implemented yet
-            println!("Search is not implemented yet.");
+            let found_keys = search::search_notes(&search_index, &query)?;
+
+            if found_keys.is_empty() {
+                colours::warn("No matching notes found.");
+                return Ok(());
+            }
+
+            println!("{}:", "Search Results".bold().underline());
+            for key in found_keys {
+                match db::get_note(&db, &key) {
+                    Ok(note) => {
+                        let tags_str = if note.tags.is_empty() {
+                            "".to_string()
+                        } else {
+                            format!(
+                                " [{}]",
+                                note.tags
+                                    .iter()
+                                    .map(|t| format!("#{}", t).cyan().to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(" ")
+                            )
+                        };
+                        println!("- {}{}", note.key.green().bold(), tags_str);
+                    }
+                    Err(_) => {
+                        colours::error(&format!(
+                            "Found key '{}' in index, but failed to retrieve from database.",
+                            key
+                        ));
+                    }
+                }
+            }
         }
         Commands::Reindex => {
             colours::info("Starting reindex of all notes...");

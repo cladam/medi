@@ -1,9 +1,11 @@
 use crate::note::Note;
 use lazy_static::lazy_static;
 use std::path::Path;
+use tantivy::collector::TopDocs;
 use tantivy::directory::MmapDirectory;
+use tantivy::query::QueryParser;
 use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter};
+use tantivy::{doc, Index, IndexWriter, ReloadPolicy, TantivyDocument};
 
 // Define the schema for your search index.
 // `lazy_static` ensures this is initialised only once.
@@ -54,4 +56,38 @@ pub fn add_note_to_index(
 
     index_writer.add_document(doc)?;
     Ok(())
+}
+
+/// Searches the index for a query and returns a Vec of matching note keys.
+pub fn search_notes(
+    index: &Index,
+    query_str: &str,
+) -> Result<Vec<String>, tantivy::error::TantivyError> {
+    let reader = index
+        .reader_builder()
+        .reload_policy(ReloadPolicy::OnCommitWithDelay)
+        .try_into()?;
+
+    let searcher = reader.searcher();
+    let key_field = SCHEMA.get_field("key")?;
+    let title_field = SCHEMA.get_field("title")?;
+    let content_field = SCHEMA.get_field("content")?;
+    let tags_field = SCHEMA.get_field("tags")?;
+
+    let query_parser = QueryParser::for_index(index, vec![title_field, content_field, tags_field]);
+    let query = query_parser.parse_query(query_str)?;
+
+    let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
+
+    let mut results = Vec::new();
+    for (_score, doc_address) in top_docs {
+        let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
+        if let Some(value) = retrieved_doc.get_first(key_field) {
+            if let Some(key_val) = value.as_str() {
+                results.push(key_val.to_string());
+            }
+        }
+    }
+
+    Ok(results)
 }
