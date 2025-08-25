@@ -37,6 +37,21 @@ pub fn initialise_search_index(config: &Config) -> Result<tantivy::Index, AppErr
     Ok(index)
 }
 
+/// Formats a slice of tags into a colored, space-separated string.
+fn format_tags(tags: &[String]) -> String {
+    if tags.is_empty() {
+        "".to_string()
+    } else {
+        format!(
+            " [{}]",
+            tags.iter()
+                .map(|t| format!("#{}", t).cyan().to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
+    }
+}
+
 // The main logic function, which takes the parsed CLI commands
 pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     // Open the database
@@ -200,18 +215,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             println!("{}:", "Notes".bold().underline());
             for note in notes {
                 // Format the tags into a colored string like `[#tag1 #tag2]`
-                let tags_str = if note.tags.is_empty() {
-                    "".to_string()
-                } else {
-                    format!(
-                        " [{}]",
-                        note.tags
-                            .iter()
-                            .map(|t| format!("#{}", t).cyan().to_string())
-                            .collect::<Vec<String>>()
-                            .join(" ")
-                    )
-                };
+                let tags_str = format_tags(&note.tags);
 
                 // Print the formatted line
                 println!("- {}{}", note.key.green().bold(), tags_str);
@@ -252,18 +256,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             for key in found_keys {
                 match db::get_note(&db, &key) {
                     Ok(note) => {
-                        let tags_str = if note.tags.is_empty() {
-                            "".to_string()
-                        } else {
-                            format!(
-                                " [{}]",
-                                note.tags
-                                    .iter()
-                                    .map(|t| format!("#{}", t).cyan().to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(" ")
-                            )
-                        };
+                        let tags_str = format_tags(&note.tags);
                         println!("- {}{}", note.key.green().bold(), tags_str);
                     }
                     Err(_) => {
