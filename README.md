@@ -27,6 +27,7 @@
 
 * **Speed**: Instant access to any note, no matter how large your collection grows, thanks to an embedded database index.
 * **Focused Workflow**: A command-line hub for your writing. Create or edit notes from any directory without needing to `cd` first.
+* **Full-Text Search**: Instantly find notes by their content, title, or tags using a powerful built-in search engine.
 * **Flexible Input**: Create notes in the way that suits your workflow:
   * Interactively in your favorite editor for long-form content.
   * Instantly with a one-liner using the `-m` flag for quick thoughts.
