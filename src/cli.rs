@@ -166,6 +166,14 @@ pub enum Commands {
         #[arg(long, short, action = clap::ArgAction::SetTrue)]
         force: bool,
     },
+    /// Search for notes by content, title, or tags.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Search for notes containing a specific term: Finds notes with 'meeting' in the content.\n  \
+    medi search meeting")]
+    Search {
+        /// The search query string.
+        query: String,
+    },
     /// Import notes from a directory or a single file.
     #[command(after_help = "EXAMPLE:\n  \
     # Import from a directory: Imports all .md files from the specified directory.\n  \

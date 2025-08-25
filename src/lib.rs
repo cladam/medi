@@ -240,6 +240,10 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 colours::warn("Deletion cancelled.");
             }
         }
+        Commands::Search { query } => {
+            // Not implemented yet
+            println!("Search is not implemented yet.");
+        }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.
             let handle_import = |key: &str, content: &str| -> Result<(), AppError> {
