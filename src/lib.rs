@@ -18,20 +18,23 @@ use dialoguer::Confirm;
 use error::AppError;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::{fs, io};
+use std::{env, fs, io};
 use tempfile::Builder as TempBuilder;
 
 pub fn initialise_search_index(config: &Config) -> Result<tantivy::Index, AppError> {
-    let search_index_path = config
-        .db_path
-        .as_ref()
-        .map(|db_path| db_path.parent().unwrap_or(db_path).join("search_index"))
-        .unwrap_or_else(|| {
-            dirs::data_dir()
-                .unwrap_or_else(|| PathBuf::from("."))
-                .join("medi")
-                .join("search_index")
-        });
+    let search_index_path = match env::var("MEDI_DB_PATH") {
+        Ok(path_str) => PathBuf::from(path_str).join("search_index"),
+        Err(_) => config
+            .db_path
+            .as_ref()
+            .map(|db_path| db_path.join("search_index"))
+            .unwrap_or_else(|| {
+                dirs::data_dir()
+                    .unwrap_or_else(|| PathBuf::from("."))
+                    .join("medi")
+                    .join("search_index")
+            }),
+    };
 
     let index = search::open_index(&search_index_path)?;
     Ok(index)
@@ -56,7 +59,7 @@ fn format_tags(tags: &[String]) -> String {
 pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
     // Open the database
     let db = db::open(config.clone())?; // Clone config for search index init
-                                        // Initialise the search index
+    // Initialise the search index
     let search_index =
         initialise_search_index(&config).map_err(|e| AppError::Search(e.to_string()))?;
 
