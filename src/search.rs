@@ -1,8 +1,9 @@
+use crate::note::Note;
 use lazy_static::lazy_static;
 use std::path::Path;
 use tantivy::directory::MmapDirectory;
 use tantivy::schema::*;
-use tantivy::{doc, Index};
+use tantivy::{doc, Index, IndexWriter};
 
 // Define the schema for your search index.
 // `lazy_static` ensures this is initialised only once.
@@ -27,4 +28,30 @@ pub fn open_index(path: &Path) -> Result<Index, tantivy::error::TantivyError> {
     let directory = MmapDirectory::open(path)?;
     let index = Index::open_or_create(directory, SCHEMA.clone())?;
     Ok(index)
+}
+
+/// Adds a single note to the search index.
+/// This function is designed to be called within a re-indexing loop.
+pub fn add_note_to_index(
+    note: &Note,
+    index_writer: &mut IndexWriter<tantivy::TantivyDocument>,
+) -> Result<(), tantivy::error::TantivyError> {
+    let schema = &SCHEMA;
+    let key = schema.get_field("key")?;
+    let title = schema.get_field("title")?;
+    let content = schema.get_field("content")?;
+    let tags_field = schema.get_field("tags")?;
+
+    let mut doc = doc!(
+        key => note.key.clone(),
+        title => note.title.clone(),
+        content => note.content.clone(),
+    );
+
+    for tag in &note.tags {
+        doc.add_text(tags_field, tag);
+    }
+
+    index_writer.add_document(doc)?;
+    Ok(())
 }

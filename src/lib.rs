@@ -244,6 +244,32 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             // Not implemented yet
             println!("Search is not implemented yet.");
         }
+        Commands::Reindex => {
+            colours::info("Starting reindex of all notes...");
+
+            // 1. Get all notes from the primary database.
+            let all_notes = db::get_all_notes(&db)?;
+            let note_count = all_notes.len();
+
+            // 2. Get a writer and wipe the old index.
+            let mut index_writer: tantivy::IndexWriter<tantivy::TantivyDocument> =
+                search_index.writer(100_000_000)?; // 100MB heap
+            index_writer.delete_all_documents()?;
+
+            // 3. Add all notes to the index.
+            for note in all_notes {
+                // Use the dedicated function in the search module
+                search::add_note_to_index(&note, &mut index_writer)?;
+            }
+
+            // 4. Commit the changes.
+            index_writer.commit()?;
+
+            colours::success(&format!(
+                "Successfully reindexed {} notes.",
+                note_count
+            ));
+        }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.
             let handle_import = |key: &str, content: &str| -> Result<(), AppError> {

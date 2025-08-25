@@ -174,6 +174,12 @@ pub enum Commands {
         /// The search query string.
         query: String,
     },
+    /// Reindex the search index.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Reindex the search index: Rebuilds the search index from the existing notes.\n  \
+    medi reindex\n\n  \
+    # Use this command if you suspect the search index is out of sync with the notes.")]
+    Reindex,
     /// Import notes from a directory or a single file.
     #[command(after_help = "EXAMPLE:\n  \
     # Import from a directory: Imports all .md files from the specified directory.\n  \
