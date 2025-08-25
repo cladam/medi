@@ -195,8 +195,7 @@ medi search "database design"
 _Output_:
 
 ```
-**Found matching notes**:
-<ul>**Search Results**</ul>
+Search Results:
 - medi-blogpost
 - rust-cli-ideas
 ```
