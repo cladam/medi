@@ -416,7 +416,6 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         }
-        // Task management commands
         Commands::Task { command } => match command {
             cli::TaskCommands::Add {
                 note_key,
