@@ -378,3 +378,138 @@ fn test_export_command() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_search_command() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // Create some notes to search through.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "rust-note",
+            "-m",
+            "A note about the Rust language and its features.",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "python-note",
+            "-m",
+            "A note about the Python language.",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "general-note",
+            "-m",
+            "A general note about programming languages.",
+        ])
+        .assert()
+        .success();
+
+    // TEST 1: Search for a term that matches a single note.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["search", "Rust"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("rust-note"))
+        .stdout(predicate::str::contains("python-note").not());
+
+    // TEST 2: Search for a term that matches multiple notes.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["search", "language"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("rust-note").and(predicate::str::contains("python-note")));
+
+    // TEST 3: Search for a term that matches no notes.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["search", "java"])
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("No matching notes found."));
+
+    Ok(())
+}
+
+#[test]
+fn test_task_workflow() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // First, create a note to associate tasks with.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["new", "task-note", "-m", "A note for my tasks"])
+        .assert()
+        .success();
+
+    // TEST 1: Add a couple of tasks.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "add", "task-note", "My first task"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added new task with ID: 1"));
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "add", "task-note", "My second task"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added new task with ID: 2"));
+
+    // TEST 2: List the tasks to verify they were added.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "list"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("My first task"))
+        .stdout(predicate::str::contains("My second task"));
+
+    // TEST 3: Mark the first task as done.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "done", "1"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Completed task: 1"));
+
+    // TEST 4: List tasks again to verify the first one is gone.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "list"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("My first task").not())
+        .stdout(predicate::str::contains("My second task"));
+
+    // TEST 5: Prioritise the second task.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "prio", "2"])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["task", "list"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("- ⭐ 2: My second task"));
+
+    Ok(())
+}
