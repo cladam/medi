@@ -135,21 +135,6 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
 
 ### Viewing and listing notes
 
-- **Get a note's content**
-  Prints the note directly to the console. This is perfect for piping to other tools.
-
-  ```bash
-  medi get "my-first-article"
-
-  # Pipe to a Markdown renderer like mdcat
-  medi get "my-first-article" | mdcat
-
-  # Get a note in Json format
-  medi get "my-first-article" --json
-
-  # Get one or several notes via a tag
-  medi get --tag my-tag
-  ```
 
 * **List all notes**
 
@@ -166,8 +151,50 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
     - tbdflow-gif-post [#blog]
     ```
 
-* **Sort your notes**
 
+### Finding, Viewing & Listing Notes
+
+  - **Interactively find a note**
+    Open a fuzzy finder to quickly search for and edit a note by its key.
+
+    ```bash
+    medi find
+    ```
+
+    This will open an interactive TUI to help you find the note you want to edit.
+
+
+  - **Get a note's content**
+    Prints the note directly to the console. This is perfect for piping to other tools.
+
+    ```bash
+    medi get "my-first-article"
+
+    # Pipe to a Markdown renderer like mdcat
+    medi get "my-first-article" | mdcat
+
+    # Get a note in Json format
+    medi get "my-first-article" --json
+
+    # Get one or several notes via a tag
+    medi get --tag my-tag
+    ```
+
+  - **List all notes**
+    The `list` command provides a rich overview of your notes, including their keys and tags.
+
+    ```bash
+    medi list
+    ```
+
+    *Output:*
+
+    ```
+    - cladam_github_io_readme [#blog #project]
+    - medi-blogpost [#rust]
+    ```
+
+  - **Sort your notes**
     You can sort the list by creation or last modification date using the `--sort-by` flag. The default is to sort alphabetically by key.
 
     ```bash
