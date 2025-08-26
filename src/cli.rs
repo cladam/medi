@@ -214,6 +214,12 @@ pub enum Commands {
     medi reindex\n\n  \
     # Use this command if you suspect the search index is out of sync with the notes.")]
     Reindex,
+    /// Interactively find and edit a note.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Find and edit a note: Opens an interactive prompt to search and edit notes.\n  \
+    medi find\n\n  \
+    # Use this command to quickly locate and modify notes without needing to remember their keys.")]
+    Find,
     /// Import notes from a directory or a single file.
     #[command(after_help = "EXAMPLE:\n  \
     # Import from a directory: Imports all .md files from the specified directory.\n  \

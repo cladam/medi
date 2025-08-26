@@ -16,10 +16,14 @@ use clap::CommandFactory;
 pub use cli::{Cli, Commands};
 use colored::Colorize;
 use config::Config;
+use crossbeam_channel::unbounded;
 use dialoguer::Confirm;
 use error::AppError;
+use skim::options::SkimOptionsBuilder;
+use skim::{Skim, SkimItem};
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::{env, fs, io};
 use tempfile::Builder as TempBuilder;
 
@@ -296,6 +300,70 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             index_writer.commit()?;
 
             colours::success(&format!("Successfully reindexed {} notes.", note_count));
+        }
+        Commands::Find => {
+            let notes = db::get_all_notes(&db)?;
+            if notes.is_empty() {
+                colours::warn("No notes to find.");
+                return Ok(());
+            }
+
+            // 1. Create a crossbeam channel.
+            let (tx, rx) = unbounded();
+
+            // 2. Send each note key through the channel.
+            for note in notes {
+                // Explicitly cast the Arc<String> to the trait object Arc<dyn SkimItem>.
+                // This ensures the channel has the correct type.
+                let item: Arc<dyn SkimItem> = Arc::new(note.key);
+                let _ = tx.send(item);
+            }
+            // Drop the sender to close the channel.
+            drop(tx);
+
+            // 2. Configure and run the fuzzy finder.
+            let options = SkimOptionsBuilder::default()
+                .height("30%".to_string())
+                .prompt("Select a note to edit: ".to_string())
+                .reverse(true)
+                .border(Some("─".to_string()))
+                .multi(false)
+                .build()
+                .unwrap();
+
+            // `Skim::run_with` launches the interactive fuzzy finder.
+            // We pass the receiver `rx` which `skim` will use to get the items.
+            let selected_items = Skim::run_with(&options, Some(rx))
+                .map(|out| out.selected_items)
+                .unwrap_or_default();
+
+            // 4. Get the selected key and open it for editing.
+            if let Some(item) = selected_items.first() {
+                let selected_key = item.output().to_string();
+
+                // We can reuse the `edit` command's logic here.
+                let mut existing_note = db::get_note(&db, &selected_key)?;
+
+                let tempfile = TempBuilder::new()
+                    .prefix("medi-note-")
+                    .suffix(".md")
+                    .tempfile()?;
+                let temppath = tempfile.path().to_path_buf();
+                fs::write(&temppath, &existing_note.content)?;
+                edit::edit_file(&temppath)?;
+
+                let updated_content = fs::read_to_string(&temppath)?;
+                if updated_content.trim() != existing_note.content.trim() {
+                    existing_note.content = updated_content;
+                    existing_note.modified_at = Utc::now();
+                    db::save_note_with_index(&db, &existing_note, &search_index)?;
+                    colours::success(&format!("Successfully updated note: '{}'", selected_key));
+                } else {
+                    colours::info("Note content unchanged.");
+                }
+            } else {
+                colours::info("No note selected.");
+            }
         }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.
