@@ -511,6 +511,30 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         },
+        Commands::Status => {
+            let notes = db::get_all_notes(&db)?;
+            let tasks = db::get_all_tasks(&db)?;
+
+            // Filter tasks to find open and priority counts
+            let open_tasks: Vec<_> = tasks
+                .iter()
+                .filter(|t| !matches!(t.status, TaskStatus::Done))
+                .collect();
+
+            let prio_tasks_count = open_tasks
+                .iter()
+                .filter(|t| matches!(t.status, TaskStatus::Prio))
+                .count();
+
+            // Print the summary
+            println!("{}", "medi status".bold().underline());
+            println!("  Notes: {}", notes.len().to_string().cyan());
+            println!(
+                "  Tasks: {} open ({} priority)",
+                open_tasks.len().to_string().cyan(),
+                prio_tasks_count.to_string().yellow()
+            );
+        }
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();
             let bin_name = cmd.get_name().to_string();

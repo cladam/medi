@@ -243,6 +243,11 @@ pub enum Commands {
         #[command(subcommand)]
         command: TaskCommands,
     },
+    /// Show a summary of the database.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Show a summary of the notes and tags in the database.\n]  \
+    medi status")]
+    Status,
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {
