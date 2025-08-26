@@ -207,6 +207,59 @@ If your search index ever gets out of sync or you're setting up `medi` for the f
 medi reindex
 ```
 
+### Task Management
+
+`medi` includes a simple task manager to help you turn notes into actionable to-do lists.
+
+  - **Add a task to a note**
+
+    ```bash
+    medi task add my-blog-post "Finish the conclusion section"
+    ```
+
+  - **List all tasks**
+    
+    The list is sorted by priority and status.
+
+    ```bash
+    medi task list
+    ```
+
+    _Output:_
+
+    ```
+    Tasks:
+    - [Prio] ⭐  42: Review final draft (for note 'medi-readme')
+    - [Open] 43: Add usage examples (for note 'medi-readme')
+    - [Done] 41: Write introduction (for note 'my-blog-post')
+    ```
+
+  - **Prioritise a task**
+
+    ```bash
+    medi task prio 43
+    ```
+
+  - **Complete a task**
+
+    ```bash
+    medi task done 43
+    ```
+
+  - **Delete a task**
+
+  ```bash
+  medi task delete 43
+  ```
+
+  - **Clear all tasks**
+    
+    This is a destructive action
+
+    ```bash
+    medi task clear
+    ```
+
 ### Deleting a Note
 
 - **Delete a note**
