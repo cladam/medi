@@ -14,7 +14,7 @@
 
 `medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
 
-## Core Philosophy
+## Philosophy
 
 `medi` is built on a few guiding principles:
 
@@ -25,15 +25,13 @@
 
 ## Features ✨
 
-* **Speed**: Instant access to any note, no matter how large your collection grows, thanks to an embedded database index.
-* **Focused Workflow**: A command-line hub for your writing. Create or edit notes from any directory without needing to `cd` first.
-* **Full-Text Search**: Instantly find notes by their content, title, or tags using a powerful built-in search engine.
-* **Flexible Input**: Create notes in the way that suits your workflow:
-  * Interactively in your favorite editor for long-form content.
-  * Instantly with a one-liner using the `-m` flag for quick thoughts.
-  * Powerfully by piping from other commands for scripting.
-* **Safe Deletion**: An interactive confirmation prompt on `delete` prevents you from accidentally losing work.
-* **Colorful & Clear Output**: Uses colored output to clearly distinguish between success messages, information, warnings, and errors.
+- **Create & Manage Notes**: Quickly create new notes using a simple command (`medi new <note-key>`). You can add content directly with a flag, pipe it from other commands, or open your favorite text editor for more detailed entries.
+- **Powerful Organisation**: Keep your notes tidy with tags. Add multiple tags when creating a note (`--tag`) and easily add or remove them later (`medi edit --add-tag ...`).
+- **Integrated Task Management**: Turn your notes into actionable to-do lists. Add tasks to any note (`medi task add ...`), list all your pending items, mark them as complete (`medi task done ...`), and set priorities to focus on what's important.
+- **Full-text Search**: Instantly find what you're looking for with a powerful search command (`medi search <term>`) that scans the content of all your notes.
+- **Import & Export**: `medi` is not a data silo. You can easily import entire directories of Markdown files to get started, and export all your notes back to Markdown or JSON at any time.
+- **List & Review**: Get a clean, sorted list of all your notes (`medi list`) or view the content of any specific note (`medi get <note-key>`).
+- **Colorful & Clear Output**: Uses colored output to clearly distinguish between success messages, information, warnings, and errors.
 
 ## How It Works, DB as Source-of-Truth
 
@@ -195,8 +193,8 @@ medi search "database design"
 
 _Output_:
 
-```
-Search Results:
+```markdown
+<ul>**Search Results:**</ul>
 - medi-blogpost
 - rust-cli-ideas
 ```
@@ -287,5 +285,6 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Support for note metadata (tags, creation dates).
 - [x] `export` notes by tag.
 - [x] Full-text search over note content.
-- [ ] Implement a `task` command for tracking the status of notes.
+- [x] Implement a `task` command for tracking the status of notes.
+- [ ] ...
 

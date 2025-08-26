@@ -190,6 +190,68 @@ fn test_list_empty() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicate::str::contains("No notes found."));
     Ok(())
 }
+
+#[test]
+fn test_get_by_tag() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+
+    // SETUP: Create three notes, two of which share a tag.
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "note1",
+            "-m",
+            "content for alpha one",
+            "--tag",
+            "project-alpha",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "note2",
+            "-m",
+            "content for bravo",
+            "--tag",
+            "project-bravo",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args([
+            "new",
+            "note3",
+            "-m",
+            "content for alpha two",
+            "--tag",
+            "project-alpha",
+        ])
+        .assert()
+        .success();
+
+    // TEST: Run `get --tag` for "project-alpha".
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["get", "--tag", "project-alpha"])
+        .assert()
+        .success()
+        // VERIFY: Check that the output contains the content of the two matching notes.
+        .stdout(
+            predicate::str::contains("content for alpha one")
+                .and(predicate::str::contains("content for alpha two")),
+        )
+        // VERIFY: Check that the output does NOT contain the content of the other note.
+        .stdout(predicate::str::contains("content for bravo").not());
+
+    Ok(())
+}
+
 #[test]
 fn test_edit_command() -> Result<(), Box<dyn std::error::Error>> {
     let harness = TestHarness::new();
