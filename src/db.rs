@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::error::AppError;
 use crate::note::Note;
 use crate::search;
+use crate::task::Task;
 use serde_json;
 use sled::Db;
 use std::path::PathBuf;
@@ -125,6 +126,38 @@ pub fn get_all_notes(db: &Db) -> Result<Vec<Note>, AppError> {
         })
         .collect() // This will now correctly return a Result<Vec<Note>, AppError>
 }
+
+// -------------------- Tasks --------------------
+
+/// Saves a task to the database.
+pub fn save_task(db: &Db, task: &Task) -> Result<(), AppError> {
+    let key = format!("tasks/{}", task.id);
+    let json_bytes = serde_json::to_vec(task)?;
+    db.insert(key, json_bytes)?;
+    db.flush()?;
+    Ok(())
+}
+
+/// Retrieves all tasks from the database.
+pub fn get_all_tasks(db: &Db) -> Result<Vec<Task>, AppError> {
+    db.scan_prefix("tasks/")
+        .values()
+        .map(|result| {
+            let value_bytes = result?;
+            let task: Task = serde_json::from_slice(&value_bytes)?;
+            Ok(task)
+        })
+        .collect()
+}
+
+/// A simple way to get the next available ID for a new task.
+pub fn get_next_task_id(db: &Db) -> Result<u64, AppError> {
+    // This is a simple counter stored at a known key.
+    let id = db.generate_id()?;
+    Ok(id)
+}
+
+// -------------------- Tests --------------------
 
 #[cfg(test)]
 mod tests {
