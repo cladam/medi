@@ -6,6 +6,9 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Sled(#[from] sled::Error),
 
+    #[error("Database error: {0}")]
+    Database(String),
+
     #[error("UTF-8 conversion error: {0}")]
     Utf8(#[from] std::str::Utf8Error),
 
@@ -35,4 +38,7 @@ pub enum AppError {
 
     #[error("Tantivy error: {0}")]
     Tantivy(#[from] tantivy::error::TantivyError),
+
+    #[error("Task with ID '{0}' not found")]
+    TaskNotFound(u64),
 }

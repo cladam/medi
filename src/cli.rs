@@ -82,6 +82,7 @@ pub enum TaskCommands {
         /// The ID of the task to complete.
         task_id: u64,
     },
+    /// Prioritise a task.
     Prio {
         /// The ID of the task to prioritize.
         task_id: u64,
@@ -220,7 +221,9 @@ pub enum Commands {
     # List all open tasks:\n  \
     medi task list\n\n  \
     # Mark a task as done:\n  \
-    medi task done 1\n")]
+    medi task done 1\n \n  \
+    # Prioritise a task:\n  \
+    medi task prio 42")]
     Task {
         #[command(subcommand)]
         command: TaskCommands,

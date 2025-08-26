@@ -151,10 +151,86 @@ pub fn get_all_tasks(db: &Db) -> Result<Vec<Task>, AppError> {
 }
 
 /// A simple way to get the next available ID for a new task.
-pub fn get_next_task_id(db: &Db) -> Result<u64, AppError> {
+/// This uses sled's built-in ID generation feature.
+/// It is amazing but gives u64 IDs, which is overkill for our needs, no one wants ID 2000001 for a task.
+/*pub fn get_next_task_id_sled(db: &Db) -> Result<u64, AppError> {
     // This is a simple counter stored at a known key.
     let id = db.generate_id()?;
     Ok(id)
+}*/
+
+/// Get the next available ID using a homegrown method.
+/// Got help by Gemini for this one.
+pub fn get_next_task_id(db: &Db) -> Result<u64, AppError> {
+    const TASK_COUNTER_KEY: &[u8] = b"__counter__/tasks";
+
+    // `update_and_fetch` is an atomic operation, which makes it safe
+    // to use even if multiple programs were running at once.
+    let new_id_bytes = db.update_and_fetch(TASK_COUNTER_KEY, |old_value| {
+        // If there's an old value, parse it. Otherwise, start at 0.
+        let old_id = match old_value {
+            Some(bytes) => {
+                // Try to parse the bytes as an u64
+                let mut buf = [0u8; 8];
+                buf.copy_from_slice(bytes);
+                u64::from_le_bytes(buf)
+            }
+            None => 0,
+        };
+
+        // Increment the ID and save it back as bytes.
+        let new_id = old_id + 1;
+        Some(new_id.to_le_bytes().to_vec())
+    })?;
+
+    // Handle the Option and extract bytes from IVec
+    let new_id = match new_id_bytes {
+        Some(ivec) => {
+            let mut buf = [0u8; 8];
+            buf.copy_from_slice(&ivec);
+            u64::from_le_bytes(buf)
+        }
+        None => {
+            return Err(AppError::Database(
+                "Failed to update task counter".to_string(),
+            ))
+        }
+    };
+
+    Ok(new_id)
+}
+
+/// Resets the task ID counter to 0.
+/// This is mainly useful for testing purposes.
+/// In a real-world scenario, resetting the counter could lead to ID collisions.
+pub fn reset_task_counter(db: &Db) -> Result<(), AppError> {
+    const TASK_COUNTER_KEY: &[u8] = b"__counter__/tasks";
+    db.insert(TASK_COUNTER_KEY, &0u64.to_le_bytes())?;
+    db.flush()?;
+    Ok(())
+}
+
+/// Deletes all tasks from the database.
+/// Only use this in testing or if you really want to clear all tasks.
+pub fn delete_all_tasks(db: &Db) -> Result<usize, AppError> {
+    let mut count = 0;
+    // Find all keys with the "tasks/" prefix.
+    let keys_to_delete: Vec<_> = db
+        .scan_prefix("tasks/")
+        .keys()
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Create a batch to delete them all at once.
+    let mut batch = sled::Batch::default();
+    for key in keys_to_delete {
+        batch.remove(key.clone());
+        count += 1;
+    }
+
+    // Apply the batch deletion.
+    db.apply_batch(batch)?;
+    db.flush()?;
+    Ok(count)
 }
 
 // -------------------- Tests --------------------

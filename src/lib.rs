@@ -9,6 +9,7 @@ mod task;
 
 use crate::cli::{ExportFormat, SortBy};
 use crate::note::{JsonExport, Note};
+use crate::task::{Task, TaskStatus};
 use atty::Stream;
 use chrono::Utc;
 use clap::CommandFactory;
@@ -416,13 +417,70 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             }
         }
         Commands::Task { command } => match command {
-            // Handle each subcommand from the `TaskCommands` enum.
-            // For now, they all point to the placeholder message.
-            cli::TaskCommands::Add { .. }
-            | cli::TaskCommands::List { .. }
-            | cli::TaskCommands::Done { .. }
-            | cli::TaskCommands::Prio { .. } => {
-                colours::warn("Task commands are not yet implemented.")
+            cli::TaskCommands::Add {
+                note_key,
+                description,
+            } => {
+                // First, make sure the note exists.
+                db::get_note(&db, &note_key)?;
+
+                let new_task = Task {
+                    id: db::get_next_task_id(&db)?,
+                    note_key,
+                    description,
+                    status: TaskStatus::Open,
+                    created_at: Utc::now(),
+                };
+                db::save_task(&db, &new_task)?;
+                colours::success(&format!("Added new task with ID: {}", new_task.id));
+            }
+            cli::TaskCommands::List => {
+                let tasks = db::get_all_tasks(&db)?;
+                let open_tasks: Vec<_> = tasks
+                    .into_iter()
+                    .filter(|t| !matches!(t.status, TaskStatus::Done))
+                    .collect();
+
+                if open_tasks.is_empty() {
+                    colours::info("No open tasks.");
+                } else {
+                    colours::info("Open tasks:");
+                    for task in open_tasks {
+                        // Add a visual indicator for priority tasks
+                        let prio_marker = if matches!(task.status, TaskStatus::Prio) {
+                            "⭐ ".yellow().to_string()
+                        } else {
+                            "".to_string()
+                        };
+                        println!(
+                            "- {}{}: {} (for note '{}')",
+                            prio_marker,
+                            task.id,
+                            task.description,
+                            task.note_key.cyan()
+                        );
+                    }
+                }
+            }
+            cli::TaskCommands::Done { task_id } => {
+                let tasks = db::get_all_tasks(&db)?;
+                if let Some(mut task) = tasks.into_iter().find(|t| t.id == task_id) {
+                    task.status = TaskStatus::Done;
+                    db::save_task(&db, &task)?;
+                    colours::success(&format!("Completed task: {}", task_id));
+                } else {
+                    Err(AppError::TaskNotFound(task_id))?;
+                }
+            }
+            cli::TaskCommands::Prio { task_id } => {
+                let tasks = db::get_all_tasks(&db)?;
+                if let Some(mut task) = tasks.into_iter().find(|t| t.id == task_id) {
+                    task.status = TaskStatus::Prio;
+                    db::save_task(&db, &task)?;
+                    colours::success(&format!("Prioritised task: {}", task_id));
+                } else {
+                    Err(AppError::TaskNotFound(task_id))?;
+                }
             }
         },
         Commands::Completion { shell } => {
