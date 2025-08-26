@@ -539,8 +539,12 @@ fn test_task_workflow() -> Result<(), Box<dyn std::error::Error>> {
         .args(["task", "list"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("My first task"))
-        .stdout(predicate::str::contains("My second task"));
+        .stdout(predicate::str::contains(
+            "[Open] 1: My first task (for note task-note)",
+        ))
+        .stdout(predicate::str::contains(
+            "[Open] 2: My second task (for note task-note)",
+        ));
 
     // TEST 3: Mark the first task as done.
     Command::cargo_bin("medi")?
@@ -556,8 +560,9 @@ fn test_task_workflow() -> Result<(), Box<dyn std::error::Error>> {
         .args(["task", "list"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("My first task").not())
-        .stdout(predicate::str::contains("My second task"));
+        .stdout(predicate::str::contains(
+            "[Done] 1: My first task (for note task-note)",
+        ));
 
     // TEST 5: Prioritise the second task.
     Command::cargo_bin("medi")?
@@ -571,7 +576,9 @@ fn test_task_workflow() -> Result<(), Box<dyn std::error::Error>> {
         .args(["task", "list"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("- ⭐ 2: My second task"));
+        .stdout(predicate::str::contains(
+            "[Prio] ⭐ 2: My second task (for note task-note)",
+        ));
 
     Ok(())
 }
