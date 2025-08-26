@@ -133,25 +133,6 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
   medi edit "my-long-article" --rm-tag tag1 --rm-tag tag2
   ```
 
-### Viewing and listing notes
-
-
-* **List all notes**
-
-    The `list` command provides a rich overview of your notes, including their keys and tags.
-
-    ```bash
-    medi list
-    ```
-    *Output:*
-    ```
-    Notes:
-    - medi-readme [#medi #README]
-    - tbdflow-readme [#tbdflow #README]
-    - tbdflow-gif-post [#blog]
-    ```
-
-
 ### Finding, Viewing & Listing Notes
 
   - **Interactively find a note**
