@@ -75,13 +75,14 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             message,
             title,
             tag,
+            template,
         } => {
             // Check for key existence here
             if db::key_exists(&db, &key)? {
                 return Err(AppError::KeyExists(key));
             }
 
-            // Determine the content from one of three sources.
+            // Determine the final content based on the input method.
             let content = if let Some(message_content) = message {
                 message_content
             } else if !atty::is(Stream::Stdin) {
@@ -89,12 +90,33 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 io::stdin().read_to_string(&mut buffer)?;
                 buffer
             } else {
+                // Open the editor.
+                let initial_content = if let Some(template_name) = template {
+                    let config_dir = dirs::config_dir().ok_or_else(|| {
+                        AppError::ConfigError("Config directory not found".into())
+                    })?;
+                    let template_path = config_dir
+                        .join("medi/templates")
+                        .join(format!("{}.md", template_name));
+
+                    // Read the template file, return empty string if it fails (e.g. not found).
+                    fs::read_to_string(template_path).unwrap_or_default()
+                } else {
+                    // No template, so start with a blank editor.
+                    String::new()
+                };
+
+                // Now, open the editor with the initial content.
                 let tempfile = TempBuilder::new()
                     .prefix("medi-note-")
                     .suffix(".md")
                     .tempfile()?;
                 let temppath = tempfile.path().to_path_buf();
+                // Write the initial content (template or empty) to the temp file.
+                fs::write(&temppath, &initial_content)?;
+                // Open the pre-filled temp file in the editor.
                 edit::edit_file(&temppath)?;
+                // Read the final content back.
                 fs::read_to_string(&temppath)?
             };
 
@@ -299,6 +321,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
 
             colours::success(&format!("Successfully reindexed {} notes.", note_count));
         }
+        #[cfg(unix)]
         Commands::Find => {
             let notes = db::get_all_notes(&db)?;
             if notes.is_empty() {
@@ -357,6 +380,12 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             } else {
                 colours::info("No note selected.");
             }
+        }
+        #[cfg(not(unix))]
+        Commands::Find => {
+            return Err(AppError::Unsupported(
+                "The 'find' command is not supported on this operating system.".to_string(),
+            ));
         }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.

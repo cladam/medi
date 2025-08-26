@@ -3,6 +3,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error("Unsupported feature: {0}")]
+    Unsupported(String),
+
     #[error("Database error: {0}")]
     Sled(#[from] sled::Error),
 
@@ -41,4 +44,7 @@ pub enum AppError {
 
     #[error("Task with ID '{0}' not found")]
     TaskNotFound(u64),
+
+    #[error("Configuration error: {0}")]
+    ConfigError(String),
 }

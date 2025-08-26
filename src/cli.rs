@@ -120,10 +120,15 @@ pub enum Commands {
         /// Provide the note content directly as an argument.
         #[arg(short, long)]
         message: Option<String>,
+        /// Add one or more tags to the note.
         #[arg(short = 'T', long)]
         tag: Vec<String>,
+        /// Specify a title for the note.
         #[arg(short, long)]
         title: Option<String>,
+        ///Create a note from a template
+        #[arg(long)]
+        template: Option<String>,
     },
     /// Edit an existing note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
