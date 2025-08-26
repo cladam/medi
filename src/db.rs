@@ -1,8 +1,10 @@
+use crate::colours::warn;
 use crate::config::Config;
 use crate::error::AppError;
 use crate::note::Note;
 use crate::search;
 use crate::task::Task;
+use chrono::Utc;
 use serde_json;
 use sled::Db;
 use std::path::PathBuf;
@@ -95,6 +97,13 @@ pub fn get_note(db: &Db, key: &str) -> Result<Note, AppError> {
         .get(key)?
         .ok_or_else(|| AppError::KeyNotFound(key.to_string()))?;
 
+    // Check if the note is empty
+    if value_ivec.is_empty() {
+        return Err(AppError::Database(format!(
+            "Note with key '{}' is empty",
+            key
+        )));
+    }
     let note: Note = serde_json::from_slice(&value_ivec).map_err(AppError::from)?;
     Ok(note)
 }
@@ -116,15 +125,34 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
 
 /// Returns all notes as a vector of `Note` structs.
 pub fn get_all_notes(db: &Db) -> Result<Vec<Note>, AppError> {
-    db.iter()
-        .values() // We only need the values, which are the serialized Note JSON
-        .map(|result| {
-            let value_bytes = result?;
-            // Deserialize the JSON bytes into a Note struct
-            let note: Note = serde_json::from_slice(&value_bytes)?;
-            Ok(note)
-        })
-        .collect() // This will now correctly return a Result<Vec<Note>, AppError>
+    let mut notes = Vec::new();
+
+    for result in db.iter() {
+        let (key_bytes, value_bytes) = result?;
+
+        // Add this check to skip tasks and internal counters.
+        if key_bytes.starts_with(b"__") || key_bytes.starts_with(b"tasks/") {
+            continue;
+        }
+
+        // Try to deserialize the value.
+        match serde_json::from_slice::<Note>(&value_bytes) {
+            Ok(note) => notes.push(note),
+            Err(_) => {
+                // If it fails, it's likely an old raw-text note or corrupted data.
+                // Warn the user instead of silently ignoring it.
+                if let Ok(key) = str::from_utf8(&key_bytes) {
+                    // This uses your existing colors::warn function
+                    warn(&format!(
+                        "Warning: Skipping corrupted or outdated note with key '{}'. Consider running `medi migrate`.",
+                        key
+                    ));
+                }
+            }
+        }
+    }
+
+    Ok(notes)
 }
 
 // -------------------- Tasks --------------------
