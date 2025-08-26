@@ -302,7 +302,7 @@ medi reindex
   ```
 
 - **Import notes from a directory**
-  Restores notes from a directory of .md files.
+  Restores notes from a directory of `.md` files.
 
   ```bash
   # By default, skips any notes that already exist
@@ -313,6 +313,20 @@ medi reindex
 
   # Overwrite existing notes with the imported versions
   medi import --file /path/to/note.md --key my-note --overwrite
+  ```
+
+### Checking Status
+
+- **Check the database status**
+  Get a quick, high-level overview of your notes and tasks.
+  ```bash
+  medi status
+  ```
+  _Output:_
+  ```
+  medi status
+    Notes: 42
+    Tasks: 8 open (3 priority)
   ```
 
 ### Shell Completion
