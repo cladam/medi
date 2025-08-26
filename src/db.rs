@@ -253,12 +253,12 @@ pub fn get_next_task_id(db: &Db) -> Result<u64, AppError> {
 /// Resets the task ID counter to 0.
 /// This is mainly useful for testing purposes.
 /// In a real-world scenario, resetting the counter could lead to ID collisions.
-pub fn reset_task_counter(db: &Db) -> Result<(), AppError> {
+/*pub fn reset_task_counter(db: &Db) -> Result<(), AppError> {
     const TASK_COUNTER_KEY: &[u8] = b"__counter__/tasks";
     db.insert(TASK_COUNTER_KEY, &0u64.to_le_bytes())?;
     db.flush()?;
     Ok(())
-}
+}*/
 
 /// Deletes all tasks from the database.
 /// Only use this in testing or if you really want to clear all tasks.

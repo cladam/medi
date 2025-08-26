@@ -449,13 +449,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     });
                     colours::info("Open tasks:");
                     for task in open_tasks {
-                        // Add a visual indicator for priority tasks
-                        let prio_marker = if matches!(task.status, TaskStatus::Prio) {
-                            "⭐ ".yellow().to_string()
-                        } else {
-                            "".to_string()
-                        };
-                        // Format the status with color
+                        // Format the status with colour
                         let status_str = match task.status {
                             TaskStatus::Open => "[Open] ".cyan(),
                             TaskStatus::Prio => "[Prio] ⭐ ".yellow().bold(),
