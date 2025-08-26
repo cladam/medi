@@ -19,7 +19,9 @@ use config::Config;
 use crossbeam_channel::unbounded;
 use dialoguer::Confirm;
 use error::AppError;
+#[cfg(unix)]
 use skim::options::SkimOptionsBuilder;
+#[cfg(unix)]
 use skim::{Skim, SkimItem};
 use std::io::Read;
 use std::path::{Path, PathBuf};

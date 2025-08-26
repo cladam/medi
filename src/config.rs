@@ -43,6 +43,57 @@ pub fn load() -> Result<Config, std::io::Error> {
 
     // Create config directory if it doesn't exist.
     fs::create_dir_all(&config_dir)?;
+    let templates_dir = config_dir.join("templates");
+    fs::create_dir_all(&templates_dir)?;
+
+    // Create an example template if it doesn't exist.
+    let example_template_path = templates_dir.join("meeting.md");
+    if !example_template_path.exists() {
+        let template_content = r#"
+# Meeting: {{ MEETING TITLE }}
+
+**Date:** {{ YYYY-MM-DD }}
+**Location:**
+**Facilitator:**
+**Notetaker:**
+
+ ---
+
+## Attendees
+
+-
+
+---
+
+## Agenda
+
+1.
+2.
+
+---
+
+## Decisions Made
+
+-
+
+---
+
+## Action Items
+
+| Task | Owner | Due Date |
+| ---- | ----- | -------- |
+|      |       |          |
+|      |       |          |
+
+---
+
+## Additional Notes
+
+-
+
+"#;
+        fs::write(example_template_path, template_content.trim())?;
+    }
 
     let config_path = config_dir.join("config.toml");
 
