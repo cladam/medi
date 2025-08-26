@@ -201,8 +201,8 @@ medi search "database design"
 
 _Output_:
 
-```markdown
-<ul>**Search Results:**</ul>
+```
+Search Results:
 - medi-blogpost
 - rust-cli-ideas
 ```
@@ -361,5 +361,8 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] `export` notes by tag.
 - [x] Full-text search over note content.
 - [x] Implement a `task` command for tracking the status of notes.
-- [ ] ...
+- [x] Implement a simple status command
+- [x] Add a Fuzzy Finder for notes
+- [ ] Add templates for different documents
+
 
