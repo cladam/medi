@@ -248,9 +248,9 @@ medi reindex
 
   - **Delete a task**
 
-  ```bash
-  medi task delete 43
-  ```
+    ```bash
+    medi task delete 43
+    ```
 
   - **Clear all tasks**
     
