@@ -76,7 +76,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             title,
             tag,
         } => {
-            // Check for key existence here, in the application logic.
+            // Check for key existence here
             if db::key_exists(&db, &key)? {
                 return Err(AppError::KeyExists(key));
             }
@@ -281,22 +281,20 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
         Commands::Reindex => {
             colours::info("Starting reindex of all notes...");
 
-            // 1. Get all notes from the primary database.
+            // Get all notes from the primary database.
             let all_notes = db::get_all_notes(&db)?;
             let note_count = all_notes.len();
 
-            // 2. Get a writer and wipe the old index.
+            // Get a writer and wipe the old index.
             let mut index_writer: tantivy::IndexWriter<tantivy::TantivyDocument> =
                 search_index.writer(100_000_000)?; // 100MB heap
             index_writer.delete_all_documents()?;
 
-            // 3. Add all notes to the index.
+            // Add all notes to the index.
             for note in all_notes {
-                // Use the dedicated function in the search module
                 search::add_note_to_index(&note, &mut index_writer)?;
             }
 
-            // 4. Commit the changes.
             index_writer.commit()?;
 
             colours::success(&format!("Successfully reindexed {} notes.", note_count));
@@ -308,20 +306,17 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 return Ok(());
             }
 
-            // 1. Create a crossbeam channel.
+            // Create a crossbeam channel.
             let (tx, rx) = unbounded();
 
-            // 2. Send each note key through the channel.
+            // Send each note key through the channel.
             for note in notes {
-                // Explicitly cast the Arc<String> to the trait object Arc<dyn SkimItem>.
-                // This ensures the channel has the correct type.
                 let item: Arc<dyn SkimItem> = Arc::new(note.key);
                 let _ = tx.send(item);
             }
-            // Drop the sender to close the channel.
             drop(tx);
 
-            // 2. Configure and run the fuzzy finder.
+            // Configure and run the fuzzy finder.
             let options = SkimOptionsBuilder::default()
                 .height("30%".to_string())
                 .prompt("Select a note to edit: ".to_string())
@@ -337,11 +332,9 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 .map(|out| out.selected_items)
                 .unwrap_or_default();
 
-            // 4. Get the selected key and open it for editing.
+            // Get the selected key and open it for editing.
             if let Some(item) = selected_items.first() {
                 let selected_key = item.output().to_string();
-
-                // We can reuse the `edit` command's logic here.
                 let mut existing_note = db::get_note(&db, &selected_key)?;
 
                 let tempfile = TempBuilder::new()
@@ -509,7 +502,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 if open_tasks.is_empty() {
                     colours::info("No open tasks.");
                 } else {
-                    // Sort tasks by status so "Prio" and "Open" appear first
+                    // Sort tasks by status
                     tasks.sort_by_key(|t| match t.status {
                         TaskStatus::Prio => 0,
                         TaskStatus::Open => 1,
