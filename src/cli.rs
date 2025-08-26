@@ -87,6 +87,17 @@ pub enum TaskCommands {
         /// The ID of the task to prioritize.
         task_id: u64,
     },
+    /// Delete a task.
+    Delete {
+        /// The ID of the task to delete.
+        task_id: u64,
+    },
+    /// Reset all tasks (use with caution).
+    Reset {
+        /// Skip the confirmation prompt.
+        #[arg(long, short, action = clap::ArgAction::SetTrue)]
+        force: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -223,7 +234,11 @@ pub enum Commands {
     # Mark a task as done:\n  \
     medi task done 1\n \n  \
     # Prioritise a task:\n  \
-    medi task prio 42")]
+    medi task prio 42\n\n  \
+    # Delete a task:\n  \
+    medi task delete 42\n\n  \
+    # Reset all tasks (use with caution):\n  \
+    medi task reset")]
     Task {
         #[command(subcommand)]
         command: TaskCommands,

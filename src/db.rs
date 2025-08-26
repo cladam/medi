@@ -130,21 +130,32 @@ pub fn get_all_notes(db: &Db) -> Result<Vec<Note>, AppError> {
     for result in db.iter() {
         let (key_bytes, value_bytes) = result?;
 
-        // Add this check to skip tasks and internal counters.
+        // Skip internal keys and task-related entries.
         if key_bytes.starts_with(b"__") || key_bytes.starts_with(b"tasks/") {
             continue;
         }
 
-        // Try to deserialize the value.
+        // Attempt to deserialize the value as a Note.
         match serde_json::from_slice::<Note>(&value_bytes) {
             Ok(note) => notes.push(note),
             Err(_) => {
-                // If it fails, it's likely an old raw-text note or corrupted data.
-                // Warn the user instead of silently ignoring it.
-                if let Ok(key) = str::from_utf8(&key_bytes) {
-                    // This uses your existing colors::warn function
+                // If deserialization fails, it could be an empty note or corrupted data.
+                // We can handle empty notes gracefully here.
+                if value_bytes.is_empty() {
+                    if let Ok(key) = str::from_utf8(&key_bytes) {
+                        notes.push(Note {
+                            key: key.to_string(),
+                            title: key.to_string(), // Default title to key
+                            content: String::new(),
+                            tags: Vec::new(),
+                            created_at: Utc::now(),
+                            modified_at: Utc::now(),
+                        });
+                    }
+                } else if let Ok(key) = str::from_utf8(&key_bytes) {
+                    // For other errors, warn the user.
                     warn(&format!(
-                        "Warning: Skipping corrupted or outdated note with key '{}'. Consider running `medi migrate`.",
+                        "Warning: Skipping corrupted or outdated note with key '{}'.",
                         key
                     ));
                 }
@@ -162,6 +173,17 @@ pub fn save_task(db: &Db, task: &Task) -> Result<(), AppError> {
     let key = format!("tasks/{}", task.id);
     let json_bytes = serde_json::to_vec(task)?;
     db.insert(key, json_bytes)?;
+    db.flush()?;
+    Ok(())
+}
+
+/// Deletes a task by its ID.
+pub fn delete_task(db: &Db, task_id: u64) -> Result<(), AppError> {
+    let key = format!("tasks/{}", task_id);
+    if !db.contains_key(&key)? {
+        return Err(AppError::KeyNotFound(key));
+    }
+    db.remove(key)?;
     db.flush()?;
     Ok(())
 }

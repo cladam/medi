@@ -435,15 +435,18 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 colours::success(&format!("Added new task with ID: {}", new_task.id));
             }
             cli::TaskCommands::List => {
-                let tasks = db::get_all_tasks(&db)?;
-                let open_tasks: Vec<_> = tasks
-                    .into_iter()
-                    .filter(|t| !matches!(t.status, TaskStatus::Done))
-                    .collect();
+                let mut tasks = db::get_all_tasks(&db)?;
+                let open_tasks: Vec<_> = tasks.clone().clone().into_iter().collect();
 
                 if open_tasks.is_empty() {
                     colours::info("No open tasks.");
                 } else {
+                    // Sort tasks by status so "Prio" and "Open" appear first
+                    tasks.sort_by_key(|t| match t.status {
+                        TaskStatus::Prio => 0,
+                        TaskStatus::Open => 1,
+                        TaskStatus::Done => 2,
+                    });
                     colours::info("Open tasks:");
                     for task in open_tasks {
                         // Add a visual indicator for priority tasks
@@ -452,12 +455,18 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                         } else {
                             "".to_string()
                         };
+                        // Format the status with color
+                        let status_str = match task.status {
+                            TaskStatus::Open => "[Open] ".cyan(),
+                            TaskStatus::Prio => "[Prio] ⭐ ".yellow().bold(),
+                            TaskStatus::Done => "[Done] ".green(),
+                        };
                         println!(
-                            "- {}{}: {} (for note '{}')",
-                            prio_marker,
+                            "- {}{}: {} (for note {})",
+                            status_str,
                             task.id,
                             task.description,
-                            task.note_key.cyan()
+                            task.note_key.cyan().bold()
                         );
                     }
                 }
@@ -480,6 +489,31 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     colours::success(&format!("Prioritised task: {}", task_id));
                 } else {
                     Err(AppError::TaskNotFound(task_id))?;
+                }
+            }
+            cli::TaskCommands::Delete { task_id } => {
+                let tasks = db::get_all_tasks(&db)?;
+                if tasks.iter().any(|t| t.id == task_id) {
+                    db::delete_task(&db, task_id)?;
+                    colours::success(&format!("Deleted task: {}", task_id));
+                } else {
+                    Err(AppError::TaskNotFound(task_id))?;
+                }
+            }
+            cli::TaskCommands::Reset { force } => {
+                let confirmed = if force {
+                    true
+                } else {
+                    Confirm::new()
+                        .with_prompt("Are you sure you want to reset all tasks?")
+                        .default(false)
+                        .interact()?
+                };
+                if confirmed {
+                    db::delete_all_tasks(&db)?;
+                    colours::success("All tasks have been reset.");
+                } else {
+                    colours::warn("Task reset cancelled.");
                 }
             }
         },
