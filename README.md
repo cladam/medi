@@ -133,7 +133,29 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
   medi edit "my-long-article" --rm-tag tag1 --rm-tag tag2
   ```
 
+### Using Templates 📝
+
+`medi` can create new notes from predefined templates to speed up your workflow. On its first run, `medi` creates an example `meeting.md` template in the configuration directory.
+
+- **Location of templates:**
+
+    * **macOS**: `~/Library/Application Support/medi/templates/`
+    * **Linux**: `~/.config/medi/templates/`
+    * **Windows**: `%APPDATA%\medi\templates\`
+
+- **Create a note from a template:**
+
+  ```bash
+  medi new my-project-meeting --template meeting
+  ```
+
+- **Create your own templates:**
+  Simply add any `.md` file to your templates directory. If you create `blog.md`, you can use it with `medi new ... --template blog`.
+
+
 ### Finding, Viewing & Listing Notes
+
+⚠️ This feature is not supported on Windows.
 
   - **Interactively find a note**
     Open a fuzzy finder to quickly search for and edit a note by its key.
@@ -363,6 +385,8 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Implement a `task` command for tracking the status of notes.
 - [x] Implement a simple status command
 - [x] Add a Fuzzy Finder for notes
-- [ ] Add templates for different documents
+- [x] Add templates for different documents
+- [ ] Wiki-Style Linking
+- [ ] ...
 
 
