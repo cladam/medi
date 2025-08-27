@@ -4,8 +4,6 @@
   <img src="assets/medi-logo.png" alt="medi logo" width="200"/>
 </p>
 
-<h1 align="center">medi</h1>
-
 <p align="center">
   <b>⚡ A speedy CLI Markdown Manager</b><br/>
   Lightweight • Local-first • Editor-friendly
@@ -17,9 +15,9 @@
 </div>
 
 
-## `medi`, a speedy CLI driven Markdown manager
+## About
 
-**A fast, editor-centric, command-line notes manager.**
+  **`medi` is a fast, editor-centric, command-line notes manager.**
 
 `medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
 
