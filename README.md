@@ -31,7 +31,7 @@
 - **Full-text Search**: Instantly find what you're looking for with a powerful search command (`medi search <term>`) that scans the content of all your notes.
 - **Import & Export**: `medi` is not a data silo. You can easily import entire directories of Markdown files to get started, and export all your notes back to Markdown or JSON at any time.
 - **List & Review**: Get a clean, sorted list of all your notes (`medi list`) or view the content of any specific note (`medi get <note-key>`).
-- **Colorful & Clear Output**: Uses colored output to clearly distinguish between success messages, information, warnings, and errors.
+- **Colourful & Clear Output**: Uses coloured output to clearly distinguish between success messages, information, warnings, and errors.
 
 ## How It Works, DB as Source-of-Truth
 
@@ -237,6 +237,53 @@ If your search index ever gets out of sync or you're setting up `medi` for the f
 medi reindex
 ```
 
+### Deleting a Note
+
+- **Delete a note**
+  You will be prompted for confirmation.
+
+  ```bash
+  medi delete "my-first-article"
+
+  # Skip the confirmation prompt
+  medi delete "my-first-article" --force
+  ```
+
+### Versioning with Export/Import
+
+- **Export all notes to a directory**
+  Creates a version-controllable snapshot of your database.
+
+  ```bash
+  medi export ./my_notes_backup
+  cd my_notes_backup
+  tbdflow init
+  ```
+- **Export all notes to a Json document**
+
+  ```bash
+  medi export medi-export --format json
+  ```
+- **Export notes via a tag**
+
+  ```bash
+  medi export medi-export --tag my-tag
+  ```
+
+- **Import notes from a directory**
+  Restores notes from a directory of `.md` files.
+
+  ```bash
+  # By default, skips any notes that already exist
+  medi import --dir /path/to/notes
+
+  # Import a single
+  medi import --file /path/to/note.md --key my-note
+
+  # Overwrite existing notes with the imported versions
+  medi import --file /path/to/note.md --key my-note --overwrite
+  ```
+
 ### Task Management
 
 `medi` includes a simple task manager to help you turn notes into actionable to-do lists.
@@ -287,55 +334,9 @@ medi reindex
     This is a destructive action
 
     ```bash
-    medi task clear
+    medi task reset
     ```
 
-### Deleting a Note
-
-- **Delete a note**
-  You will be prompted for confirmation.
-
-  ```bash
-  medi delete "my-first-article"
-
-  # Skip the confirmation prompt
-  medi delete "my-first-article" --force
-  ```
-
-### Versioning with Export/Import
-
-- **Export all notes to a directory**
-  Creates a version-controllable snapshot of your database.
-
-  ```bash
-  medi export ./my_notes_backup
-  cd my_notes_backup
-  tbdflow init
-  ```
-- **Export all notes to a Json document**
-
-  ```bash
-  medi export medi-export --format json
-  ```
-- **Export notes via a tag**
-
-  ```bash
-  medi export medi-export --tag my-tag
-  ```
-
-- **Import notes from a directory**
-  Restores notes from a directory of `.md` files.
-
-  ```bash
-  # By default, skips any notes that already exist
-  medi import --dir /path/to/notes
-
-  # Import a single
-  medi import --file /path/to/note.md --key my-note
-
-  # Overwrite existing notes with the imported versions
-  medi import --file /path/to/note.md --key my-note --overwrite
-  ```
 
 ### Checking Status
 
