@@ -1,6 +1,15 @@
 <div align="center">
 
-# medi ✒️
+<p align="center">
+  <img src="assets/medi-logo.png" alt="medi logo" width="200"/>
+</p>
+
+<h1 align="center">medi</h1>
+
+<p align="center">
+  <b>⚡ A speedy CLI Markdown Manager</b><br/>
+  Lightweight • Local-first • Editor-friendly
+</p>
 
 [![Crates.io](https://img.shields.io/crates/v/medi.svg)](https://crates.io/crates/medi)
 [![Downloads](https://img.shields.io/crates/d/medi.svg)](https://crates.io/crates/medi)
