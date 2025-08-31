@@ -6,7 +6,7 @@ use clap_complete::Shell;
     name = "medi",
     author = "Claes Adamsson @cladam",
     version,
-    about = "CLI driven Markdown manager",
+    about = "⚡ medi: A speedy CLI Markdown manager ⚡",
     long_about = None)]
 #[command(propagate_version = true)]
 pub struct Cli {
@@ -257,8 +257,12 @@ pub enum Commands {
     /// Show a summary of the database.
     #[command(after_help = "EXAMPLE:\n  \
     # Show a summary of the notes and tags in the database.\n]  \
-    medi status")]
-    Status,
+    medi status\n\n  \
+    medi status --key my-note")]
+    Status {
+        /// The key of the note to show stats for. (Optional)
+        key: Option<String>,
+    },
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {

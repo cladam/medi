@@ -28,7 +28,6 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::{env, fs, io};
 use tempfile::Builder as TempBuilder;
-
 pub fn initialise_search_index(config: &Config) -> Result<tantivy::Index, AppError> {
     let search_index_path = match env::var("MEDI_DB_PATH") {
         Ok(path_str) => PathBuf::from(path_str).join("search_index"),
@@ -61,6 +60,18 @@ fn format_tags(tags: &[String]) -> String {
                 .join(" ")
         )
     }
+}
+
+/// Helper function to calculate reading time
+fn calculate_reading_time(word_count: usize) -> u64 {
+    // Assuming an average reading speed of 225 words per minute
+    let wpm = 225.0;
+    (word_count as f64 / wpm).ceil() as u64
+}
+
+/// Helper function to count words in a string
+fn count_words(text: &str) -> usize {
+    text.split_whitespace().count()
 }
 
 // The main logic function, which takes the parsed CLI commands
@@ -252,7 +263,7 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 let tags_str = format_tags(&note.tags);
 
                 // Print the formatted line
-                println!("- {}{}", note.key.green().bold(), tags_str);
+                println!("📄  {}{}", note.key.green().bold(), tags_str);
             }
         }
         Commands::Delete { key, force } => {
@@ -603,29 +614,49 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 }
             }
         },
-        Commands::Status => {
-            let notes = db::get_all_notes(&db)?;
-            let tasks = db::get_all_tasks(&db)?;
+        Commands::Status { key } => {
+            if let Some(note_key) = key {
+                // --- DETAILED NOTE STATS ---
+                let note = db::get_note(&db, &note_key)?;
+                let word_count = count_words(&note.content).into();
+                let reading_time = calculate_reading_time(word_count);
+                let tags_str = if note.tags.is_empty() {
+                    "None".to_string()
+                } else {
+                    note.tags.join(", ")
+                };
 
-            // Filter tasks to find open and priority counts
-            let open_tasks: Vec<_> = tasks
-                .iter()
-                .filter(|t| !matches!(t.status, TaskStatus::Done))
-                .collect();
+                println!("{}", note.title.bold().underline());
+                println!("  Key: {}", note.key.cyan());
+                println!("  Tags: {}", tags_str.cyan());
+                println!("  Words: {}", word_count.to_string().cyan());
+                println!(
+                    "  Reading Time: ~{} minute(s)",
+                    reading_time.to_string().cyan()
+                );
+                println!("  Created: {}", note.created_at.to_rfc2822());
+                println!("  Modified: {}", note.modified_at.to_rfc2822());
+            } else {
+                // --- GLOBAL DATABASE OVERVIEW ---
+                let notes = db::get_all_notes(&db)?;
+                let tasks = db::get_all_tasks(&db)?;
+                let open_tasks: Vec<_> = tasks
+                    .iter()
+                    .filter(|t| !matches!(t.status, TaskStatus::Done))
+                    .collect();
+                let prio_tasks_count = open_tasks
+                    .iter()
+                    .filter(|t| matches!(t.status, TaskStatus::Prio))
+                    .count();
 
-            let prio_tasks_count = open_tasks
-                .iter()
-                .filter(|t| matches!(t.status, TaskStatus::Prio))
-                .count();
-
-            // Print the summary
-            println!("{}", "medi status".bold().underline());
-            println!("  Notes: {}", notes.len().to_string().cyan());
-            println!(
-                "  Tasks: {} open ({} priority)",
-                open_tasks.len().to_string().cyan(),
-                prio_tasks_count.to_string().yellow()
-            );
+                println!("{}", "medi status".bold().underline());
+                println!("  Notes: {}", notes.len().to_string().cyan());
+                println!(
+                    "  Tasks: {} open ({} priority)",
+                    open_tasks.len().to_string().cyan(),
+                    prio_tasks_count.to_string().yellow()
+                );
+            }
         }
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();
