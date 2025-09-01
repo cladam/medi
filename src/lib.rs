@@ -587,9 +587,9 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     for task in open_tasks {
                         // Format the status with colour
                         let status_str = match task.status {
-                            TaskStatus::Open => "[Open] ".cyan(),
-                            TaskStatus::Prio => "[Prio] ⭐ ".yellow().bold(),
-                            TaskStatus::Done => "[Done] ".green(),
+                            TaskStatus::Open => "[Open]".cyan(),
+                            TaskStatus::Prio => "[Prio] ⭐".yellow().bold(),
+                            TaskStatus::Done => "[Done]".green(),
                         };
                         println!(
                             "[{}] {}: {} (for note {})",
