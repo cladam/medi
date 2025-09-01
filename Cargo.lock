@@ -1554,6 +1554,7 @@ dependencies = [
  "lazy_static",
  "openssl-sys",
  "predicates",
+ "regex",
  "self_update",
  "serde",
  "serde_json",

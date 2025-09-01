@@ -9,6 +9,9 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Sled(#[from] sled::Error),
 
+    #[error("Regexp error: {0}")]
+    Regexp(#[from] regex::Error),
+
     #[error("Database error: {0}")]
     Database(String),
 

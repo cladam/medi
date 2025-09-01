@@ -19,6 +19,7 @@ use config::Config;
 use crossbeam_channel::unbounded;
 use dialoguer::Confirm;
 use error::AppError;
+use regex::Regex;
 #[cfg(unix)]
 use skim::options::SkimOptionsBuilder;
 #[cfg(unix)]
@@ -263,7 +264,39 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                 let tags_str = format_tags(&note.tags);
 
                 // Print the formatted line
-                println!("📄  {}{}", note.key.green().bold(), tags_str);
+                println!("- {}{}", note.key.green().bold(), tags_str);
+            }
+        }
+        Commands::Backlinks { key } => {
+            let all_notes = db::get_all_notes(&db)?;
+
+            // The pattern we're looking for is [[key]]
+            let link_pattern = format!(r"\[\[{}\]\]", regex::escape(&key));
+            let re = Regex::new(&link_pattern)?;
+
+            let mut linking_notes = Vec::new();
+            for note in all_notes {
+                // Don't link a note to itself
+                if note.key == key {
+                    continue;
+                }
+                // If the note's content contains a link to our key, add it to the list.
+                if re.is_match(&note.content) {
+                    linking_notes.push(note.key);
+                }
+            }
+
+            if linking_notes.is_empty() {
+                colours::warn(&format!("No backlinks found for '{}'.", key));
+            } else {
+                colours::info(&format!(
+                    "Found {} backlinks for '{}':",
+                    linking_notes.len(),
+                    key.bold()
+                ));
+                for linking_key in linking_notes {
+                    println!("- {}", linking_key);
+                }
             }
         }
         Commands::Delete { key, force } => {

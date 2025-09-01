@@ -31,6 +31,7 @@ lazy_static = "1.5.0"
 self_update = "0.42.0"
 flume = "0.11.1"
 crossbeam-channel = "0.5.15"
+regex = "1.11.1"
 [target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 openssl-sys = { version = "0.9.109", features = ["vendored"] }
 

@@ -191,6 +191,27 @@ pub enum Commands {
         #[arg(long, short, value_enum, default_value_t = SortBy::Key)]
         sort_by: SortBy,
     },
+    /// Find all notes that link to the given note key.
+    ///
+    // Create a target note:
+    // medi new rust -m "A systems programming language."
+    // Create a note that links to it:
+    // medi new medi-project -m "medi is a CLI tool built in [[rust]]."
+    // Find the backlink:
+    // medi backlinks rust
+    ///
+    #[command(after_help = "EXAMPLE:\n  \
+    # Create a note that links to another note:\n  \
+    medi new medi-project -m \"medi is a CLI tool built in [[rust]].\"\n\n  \
+    # Create the target note:\n  \
+    medi new rust -m \"A systems programming language.\"\n\n  \
+    # Find backlinks: Lists all notes that link to the specified note key.\n  \
+    medi backlinks rust\n\n  \
+    # Use this command to discover relationships between your notes and see which notes reference a particular note.")]
+    Backlinks {
+        /// The key of the note to find links for.
+        key: String,
+    },
     /// Delete a note with the specified key.
     #[command(after_help = "EXAMPLE:\n  \
     # Delete a note: Removes the note with the specified key.\n  \
