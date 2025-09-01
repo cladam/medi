@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>⚡ A speedy CLI Markdown Manager</b><br/>
+  <b>⚡ A speedy CLI Markdown Manager ⚡</b><br/>
   Lightweight • Local-first • Editor-friendly
 </p>
 
@@ -17,7 +17,7 @@
 
 ## About
 
-  **`medi` is a fast, editor-centric, command-line notes manager.**
+**[[medi]] is a fast, editor-centric, command-line notes manager.**
 
 `medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
 
@@ -38,6 +38,7 @@
 - **Full-text Search**: Instantly find what you're looking for with a powerful search command (`medi search <term>`) that scans the content of all your notes.
 - **Import & Export**: `medi` is not a data silo. You can easily import entire directories of Markdown files to get started, and export all your notes back to Markdown or JSON at any time.
 - **List & Review**: Get a clean, sorted list of all your notes (`medi list`) or view the content of any specific note (`medi get <note-key>`).
+- **Finding Connections & Notes**: Use `[[wiki-like]]` syntax to link back to a note, and use a fuzzy finder to quickly find and edit a note by its key.
 - **Colourful & Clear Output**: Uses coloured output to clearly distinguish between success messages, information, warnings, and errors.
 
 ## How It Works, DB as Source-of-Truth
@@ -313,9 +314,9 @@ medi reindex
 
     ```
     Tasks:
-    - [Prio] ⭐  42: Review final draft (for note 'medi-readme')
-    - [Open] 43: Add usage examples (for note 'medi-readme')
-    - [Done] 41: Write introduction (for note 'my-blog-post')
+    [42] [Prio] ⭐ : Review final draft (for note 'medi-readme')
+    [43] [Open] : Add usage examples (for note 'medi-readme')
+    [44] [Done] : Write introduction (for note 'my-blog-post')
     ```
 
   - **Prioritise a task**
@@ -347,17 +348,55 @@ medi reindex
 
 ### Checking Status
 
-- **Check the database status**
-  Get a quick, high-level overview of your notes and tasks.
-  ```bash
-  medi status
-  ```
-  _Output:_
-  ```
-  medi status
-    Notes: 42
-    Tasks: 8 open (3 priority)
-  ```
+The `status` command provides a high-level overview of your database or detailed statistics for a single note.
+
+  - **Get a global overview:**
+
+    ```bash
+    medi status
+    ```
+
+    _Output:_
+
+    ```
+    medi status
+      Notes: 42
+      Tasks: 8 open (3 priority)
+    ```
+
+  - **Get stats for a specific note:**
+
+    ```bash
+    medi status medi-blogpost
+    ```
+
+    _Output:_
+
+    ```
+    medi-blogpost
+      Key: medi-blogpost
+      Tags: rust, cli
+      Words: 584
+      Reading Time: ~3 minute(s)
+      Created: Mon, 12 Sep 2025 10:30:00 +0200
+      Modified: Tue, 13 Sep 2025 15:00:00 +0200
+    ```
+
+### Discover Connections
+
+  - **Find backlinks for a note**
+    Discover all the notes that link to a specific topic using `[[wiki-link]]` syntax.
+
+    ```bash
+    medi backlinks rust
+    ```
+
+    _Output:_
+
+    ```
+    Found 1 backlinks for 'rust':
+    - medi-project
+    ```
 
 ### Shell Completion
 
@@ -386,7 +425,7 @@ medi generate-completion fish | source
 This section tracks the implementation status of `medi`'s features. Contributions are welcome!
 
 - [x] All core commands (new, get, list, edit, delete, import, export).
-- [x] Configuration file for settings (e.g., database path).
+- [x] Configuration file for settings (e.g. database path).
 - [x] Support for note metadata (tags, creation dates).
 - [x] `export` notes by tag.
 - [x] Full-text search over note content.
@@ -394,7 +433,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Implement a simple status command
 - [x] Add a Fuzzy Finder for notes
 - [x] Add templates for different documents
-- [ ] Wiki-Style Linking
+- [x] Wiki-Style Linking
 - [ ] ...
 
 

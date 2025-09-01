@@ -592,9 +592,9 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                             TaskStatus::Done => "[Done] ".green(),
                         };
                         println!(
-                            "- {}{}: {} (for note {})",
-                            status_str,
+                            "[{}] {}: {} (for note {})",
                             task.id,
+                            status_str,
                             task.description,
                             task.note_key.cyan().bold()
                         );
