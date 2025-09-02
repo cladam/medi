@@ -1,5 +1,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
+use rand::distr::{Alphanumeric, SampleString};
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -7,6 +8,7 @@ use tempfile::{tempdir, TempDir};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+use std::time::Instant;
 
 /// TestHarness manages the temporary directory and paths for our tests.
 struct TestHarness {
@@ -580,5 +582,64 @@ fn test_task_workflow() -> Result<(), Box<dyn std::error::Error>> {
             "[2] [Prio] ⭐: My second task (for note task-note)",
         ));
 
+    Ok(())
+}
+
+#[test]
+#[ignore] // Ignore this test by default, run it explicitly when needed.
+fn test_performance() -> Result<(), Box<dyn std::error::Error>> {
+    let harness = TestHarness::new();
+    let note_count = 1000; // Configurable: change this value for larger tests
+    let search_term = "performance";
+
+    // ---  Generate Notes ---
+    println!("\n--- Generating {} notes... ---", note_count);
+    let start_gen = Instant::now();
+    for i in 1..=note_count {
+        let key = format!("perf-test-{}", i);
+        let mut content = Alphanumeric.sample_string(&mut rand::rng(), 5_000);
+
+        // Inject the search term into one note
+        if i == note_count / 2 {
+            content.push_str(" ");
+            content.push_str(search_term);
+        }
+
+        Command::cargo_bin("medi")?
+            .env("MEDI_DB_PATH", &harness.db_path)
+            .args(["new", &key, "-m", &content])
+            .assert()
+            .success();
+
+        if i % 100 == 0 {
+            println!("Created {} / {} notes...", i, note_count);
+        }
+    }
+    println!("Note generation finished in: {:?}", start_gen.elapsed());
+
+    // --- Time Reindex and Search ---
+    println!("\n--- Rebuilding search index... ---");
+    let start_reindex = Instant::now();
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .arg("reindex")
+        .assert()
+        .success();
+    println!("Reindexing finished in: {:?}", start_reindex.elapsed());
+
+    println!("\n--- Timing search for '{}'... ---", search_term);
+    let start_search = Instant::now();
+    Command::cargo_bin("medi")?
+        .env("MEDI_DB_PATH", &harness.db_path)
+        .args(["search", search_term])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(format!(
+            "perf-test-{}",
+            note_count / 2
+        )));
+    println!("Search finished in: {:?}", start_search.elapsed());
+
+    // Cleanup is handled automatically when `harness` goes out of scope and `TempDir` is dropped.
     Ok(())
 }
