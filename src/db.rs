@@ -123,6 +123,30 @@ pub fn delete_note(db: &Db, key: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Finds and deletes all tasks associated with a given note key.
+/// A traditional cascade delete.
+pub fn delete_tasks_for_note(db: &Db, note_key: &str) -> Result<usize, AppError> {
+    let tasks_to_delete: Vec<Task> = get_all_tasks(db)?
+        .into_iter()
+        .filter(|task| task.note_key == note_key)
+        .collect();
+
+    if tasks_to_delete.is_empty() {
+        return Ok(0);
+    }
+
+    let mut batch = sled::Batch::default();
+    for task in &tasks_to_delete {
+        let task_key = format!("tasks/{}", task.id);
+        batch.remove(task_key.as_bytes());
+    }
+
+    db.apply_batch(batch)?;
+    db.flush()?;
+
+    Ok(tasks_to_delete.len())
+}
+
 /// Returns all notes as a vector of `Note` structs.
 pub fn get_all_notes(db: &Db) -> Result<Vec<Note>, AppError> {
     let mut notes = Vec::new();

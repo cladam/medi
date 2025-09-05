@@ -310,14 +310,18 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             };
 
             if confirmed {
-                if db::delete_note_with_index(&db, &key, &search_index).is_ok() {
-                    colours::success(&format!("Successfully deleted note: '{}'", key));
-                } else {
-                    colours::error(&format!(
-                        "Failed to delete note: '{}'. It may not exist.",
-                        key
+                // First, delete all associated tasks.
+                let deleted_tasks_count = db::delete_tasks_for_note(&db, &key)?;
+                if deleted_tasks_count > 0 {
+                    colours::info(&format!(
+                        "Deleted {} associated task(s).",
+                        deleted_tasks_count
                     ));
                 }
+
+                // Then, delete the note itself.
+                db::delete_note_with_index(&db, &key, &search_index)?;
+                colours::success(&format!("Successfully deleted note: '{}'", key));
             } else {
                 colours::warn("Deletion cancelled.");
             }
