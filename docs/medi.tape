@@ -25,6 +25,12 @@ Type 'medi new rust-cli-post -m "Draft post about building CLIs in Rust." --tag 
 Enter
 Sleep 2s
 
+Type '# Verify with "get" to show the content'
+Enter
+Type "medi get rust-cli-post"
+Enter
+Sleep 3s
+
 Type "# Add a task to that note"
 Enter
 Type 'medi task add rust-cli-post "Write the introduction paragraph"'
@@ -34,6 +40,24 @@ Sleep 2s
 Type "# List our tasks to see the new one"
 Enter
 Type "medi task list"
+Enter
+Sleep 3s
+
+# Clear the screen for the next command
+Ctrl+L
+Sleep 1s
+
+Type "# Let's create a note from a pipe"
+Enter
+Type 'export MEDI_VAR="My medi note from an environment variable"'
+Enter
+Type 'echo $MEDI_VAR | medi new medi-var --tag env'
+Enter
+Sleep 2s
+
+Type "# Check status for the new note"
+Enter
+Type "medi status medi-var"
 Enter
 Sleep 3s
 
@@ -67,23 +91,31 @@ Sleep 3s
 Ctrl+L
 Sleep 1s
 
-Type "# Checking the status again"
+Type "# Export for backup"
 Enter
-Type "medi status"
-Enter
-Sleep 3s
-
-Type "# Let's create a note from a pipe"
-Enter
-Type 'export MEDI_VAR="My medi note from an environment variable"'
-Enter
-Type 'echo $MEDI_VAR | medi new medi-var --tag env'
+Type "medi export /tmp/medi_backup"
 Enter
 Sleep 2s
 
-Type "# Check status for the new note"
+Type "# Simulate data loss by deleting a note"
 Enter
-Type "medi status medi-var"
+Type "medi delete gui-pkm --force"
+Enter
+Sleep 2s
+
+# Clear the screen for the next command
+Ctrl+L
+Sleep 1s
+
+Type "# Restore the deleted note from our backup"
+Enter
+Type "medi import --file /tmp/medi_backup/gui-pkm.md --key gui-pkm"
+Enter
+Sleep 3s
+
+Type "# Checking the status again"
+Enter
+Type "medi status"
 Enter
 Sleep 3s
 
