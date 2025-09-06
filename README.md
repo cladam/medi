@@ -21,6 +21,8 @@
 
 `medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
 
+![A terminal running medi commands](docs/medi.gif "A demo of medi")
+
 ## Philosophy
 
 `medi` is built on a few guiding principles:
