@@ -31,6 +31,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::{env, fs, io};
 use tempfile::Builder as TempBuilder;
+
+/// Initialise or open the Tantivy search index located at the specified path.
 pub fn initialise_search_index(config: &Config) -> Result<tantivy::Index, AppError> {
     let search_index_path = match env::var("MEDI_DB_PATH") {
         Ok(path_str) => PathBuf::from(path_str).join("search_index"),
@@ -75,6 +77,30 @@ fn calculate_reading_time(word_count: usize) -> u64 {
 /// Helper function to count words in a string
 fn count_words(text: &str) -> usize {
     text.split_whitespace().count()
+}
+
+// A helper function to handle the linting and reporting
+fn run_linter_on_notes(notes_to_lint: Vec<Note>) -> Result<usize, AppError> {
+    let mut total_issues = 0;
+    let config = rumdl_lib::config::Config::default();
+    let all_rules = rumdl_lib::rules::all_rules(&config);
+
+    for note in notes_to_lint {
+        let issues = lint(&note.content, &all_rules, false, config.markdown_flavor())?;
+        if !issues.is_empty() {
+            println!("\n📝 Found issues in '{}':", note.key.bold());
+            for issue in issues {
+                println!(
+                    "  - {} (Line: {}, Rule: {})",
+                    issue.message.yellow(),
+                    issue.line,
+                    issue.rule_name.as_deref().unwrap_or("<unknown>")
+                );
+                total_issues += 1;
+            }
+        }
+    }
+    Ok(total_issues)
 }
 
 // The main logic function, which takes the parsed CLI commands
@@ -698,55 +724,14 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             }
         }
         Commands::Lint { key } => {
-            let mut total_issues = 0;
-
-            if let Some(note_key) = key {
-                let note = db::get_note(&db, &note_key)?;
-                let config = rumdl_lib::config::Config::default();
-                let all_rules = rumdl_lib::rules::all_rules(&config);
-                let issues = lint(&note.content, &all_rules, false, config.markdown_flavor())?;
-
-                if issues.is_empty() {
-                    colours::success(&format!("✅ No issues found in '{}'.", note.key));
-                } else {
-                    println!("\n📝 Found issues in '{}':", note.key.bold());
-                    for issue in issues {
-                        println!(
-                            "  - {} (Line: {}, Rule: {})",
-                            issue.message.yellow(),
-                            issue.line,
-                            issue.rule_name.as_deref().unwrap_or("<unknown>")
-                        );
-                        total_issues += 1;
-                    }
-                }
+            colours::info("Running linter...");
+            let notes_to_lint = if let Some(note_key) = key {
+                vec![db::get_note(&db, &note_key)?]
             } else {
-                let notes = db::get_all_notes(&db)?;
+                db::get_all_notes(&db)?
+            };
 
-                colours::info("Running linter on all notes...");
-
-                // Get all available linting rules from rumdl_lib
-                let config = rumdl_lib::config::Config::default();
-                let all_rules = rumdl_lib::rules::all_rules(&config);
-
-                for note in notes {
-                    // Call the lint function with the required parameters
-                    let issues = lint(&note.content, &all_rules, false, config.markdown_flavor())?;
-
-                    if !issues.is_empty() {
-                        println!("\n📝 Found issues in '{}':", note.key.bold());
-                        for issue in issues {
-                            println!(
-                                "  - {} (Line: {}, Rule: {})",
-                                issue.message.yellow(),
-                                issue.line,
-                                issue.rule_name.as_deref().unwrap_or("<unknown>")
-                            );
-                            total_issues += 1;
-                        }
-                    }
-                }
-            }
+            let total_issues = run_linter_on_notes(notes_to_lint)?;
 
             if total_issues == 0 {
                 colours::success("\n✅ No issues found.");
