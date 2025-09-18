@@ -20,6 +20,8 @@ use crossbeam_channel::unbounded;
 use dialoguer::Confirm;
 use error::AppError;
 use regex::Regex;
+
+use rumdl_lib::lint;
 #[cfg(unix)]
 use skim::options::SkimOptionsBuilder;
 #[cfg(unix)]
@@ -693,6 +695,63 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
                     open_tasks.len().to_string().cyan(),
                     prio_tasks_count.to_string().yellow()
                 );
+            }
+        }
+        Commands::Lint { key } => {
+            let mut total_issues = 0;
+
+            if let Some(note_key) = key {
+                let note = db::get_note(&db, &note_key)?;
+                let config = rumdl_lib::config::Config::default();
+                let all_rules = rumdl_lib::rules::all_rules(&config);
+                let issues = lint(&note.content, &all_rules, false, config.markdown_flavor())?;
+
+                if issues.is_empty() {
+                    colours::success(&format!("✅ No issues found in '{}'.", note.key));
+                } else {
+                    println!("\n📝 Found issues in '{}':", note.key.bold());
+                    for issue in issues {
+                        println!(
+                            "  - {} (Line: {}, Rule: {})",
+                            issue.message.yellow(),
+                            issue.line,
+                            issue.rule_name.as_deref().unwrap_or("<unknown>")
+                        );
+                        total_issues += 1;
+                    }
+                }
+            } else {
+                let notes = db::get_all_notes(&db)?;
+
+                colours::info("Running linter on all notes...");
+
+                // Get all available linting rules from rumdl_lib
+                let config = rumdl_lib::config::Config::default();
+                let all_rules = rumdl_lib::rules::all_rules(&config);
+
+                for note in notes {
+                    // Call the lint function with the required parameters
+                    let issues = lint(&note.content, &all_rules, false, config.markdown_flavor())?;
+
+                    if !issues.is_empty() {
+                        println!("\n📝 Found issues in '{}':", note.key.bold());
+                        for issue in issues {
+                            println!(
+                                "  - {} (Line: {}, Rule: {})",
+                                issue.message.yellow(),
+                                issue.line,
+                                issue.rule_name.as_deref().unwrap_or("<unknown>")
+                            );
+                            total_issues += 1;
+                        }
+                    }
+                }
+            }
+
+            if total_issues == 0 {
+                colours::success("\n✅ No issues found.");
+            } else {
+                colours::warn(&format!("\nFound a total of {} issues.", total_issues));
             }
         }
         Commands::Completion { shell } => {

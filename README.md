@@ -14,12 +14,12 @@
 
 </div>
 
-
 ## About
 
 **[[medi]] is a fast, editor-centric, command-line notes manager.**
 
-`medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
+`medi` is a simple and powerful tool for creating and managing your notes, articles, and documentation directly from the
+terminal. It's built for developers, writers, and anyone who loves the speed and focus of a command-line workflow.
 
 ![A terminal running medi commands](docs/medi.gif "A demo of medi")
 
@@ -28,24 +28,37 @@
 `medi` is built on a few guiding principles:
 
 - **CLI-first**: Everything is done through the terminal. No GUIs or TUIs, no distractions.
-- **Editor-centric**: Your text editor (`$EDITOR`) is where you write. `medi` gets you there quickly and saves your work securely.
-- **Local & private**: All content is stored on your local machine in a high-performance embedded database. No cloud services, no network access.
+- **Editor-centric**: Your text editor (`$EDITOR`) is where you write. `medi` gets you there quickly and saves your work
+  securely.
+- **Local & private**: All content is stored on your local machine in a high-performance embedded database. No cloud
+  services, no network access.
 - **Zero-config start**: Install it and start writing immediately.
 
 ## Features ✨
 
-- **Create & Manage Notes**: Quickly create new notes using a simple command (`medi new <note-key>`). You can add content directly with a flag, pipe it from other commands, or open your favorite text editor for more detailed entries.
-- **Powerful Organisation**: Keep your notes tidy with tags. Add multiple tags when creating a note (`--tag`) and easily add or remove them later (`medi edit --add-tag ...`).
-- **Integrated Task Management**: Turn your notes into actionable to-do lists. Add tasks to any note (`medi task add ...`), list all your pending items, mark them as complete (`medi task done ...`), and set priorities to focus on what's important.
-- **Full-text Search**: Instantly find what you're looking for with a powerful search command (`medi search <term>`) that scans the content of all your notes.
-- **Import & Export**: `medi` is not a data silo. You can easily import entire directories of Markdown files to get started, and export all your notes back to Markdown or JSON at any time.
-- **List & Review**: Get a clean, sorted list of all your notes (`medi list`) or view the content of any specific note (`medi get <note-key>`).
-- **Finding Connections & Notes**: Use `[[wiki-like]]` syntax to link back to a note, and use a fuzzy finder to quickly find and edit a note by its key.
-- **Colourful & Clear Output**: Uses coloured output to clearly distinguish between success messages, information, warnings, and errors.
+- **Create & Manage Notes**: Quickly create new notes using a simple command (`medi new <note-key>`). You can add
+  content directly with a flag, pipe it from other commands, or open your favorite text editor for more detailed
+  entries.
+- **Powerful Organisation**: Keep your notes tidy with tags. Add multiple tags when creating a note (`--tag`) and easily
+  add or remove them later (`medi edit --add-tag ...`).
+- **Integrated Task Management**: Turn your notes into actionable to-do lists. Add tasks to any note (
+  `medi task add ...`), list all your pending items, mark them as complete (`medi task done ...`), and set priorities to
+  focus on what's important.
+- **Full-text Search**: Instantly find what you're looking for with a powerful search command (`medi search <term>`)
+  that scans the content of all your notes.
+- **Import & Export**: `medi` is not a data silo. You can easily import entire directories of Markdown files to get
+  started, and export all your notes back to Markdown or JSON at any time.
+- **List & Review**: Get a clean, sorted list of all your notes (`medi list`) or view the content of any specific note (
+  `medi get <note-key>`).
+- **Finding Connections & Notes**: Use `[[wiki-like]]` syntax to link back to a note, and use a fuzzy finder to quickly
+  find and edit a note by its key.
+- **Colourful & Clear Output**: Uses coloured output to clearly distinguish between success messages, information,
+  warnings, and errors.
 
 ## How It Works, DB as Source-of-Truth
 
-`medi` uses a database-first approach. All your notes are stored in a `sled` key-value database, making access fast and reliable. This database is the single source of truth.
+`medi` uses a database-first approach. All your notes are stored in a `sled` key-value database, making access fast and
+reliable. This database is the single source of truth.
 
 To version control your work with Git, `medi` provides a simple and deliberate workflow:
 
@@ -59,7 +72,8 @@ You need [Rust and Cargo](https://www.rust-lang.org/tools/install) installed.
 
 #### Installing from crates.io
 
-The easiest way to install `medi` is to download it from [crates.io](https://crates.io/crates/medi). You can do it using the following command:
+The easiest way to install `medi` is to download it from [crates.io](https://crates.io/crates/medi). You can do it using
+the following command:
 
 ```bash
 cargo install medi
@@ -83,11 +97,12 @@ sudo cargo install --path . --root /usr/local
 
 ## Configuration
 
-On the first run, `medi` will automatically create a default configuration file at the standard location for your operating system:
+On the first run, `medi` will automatically create a default configuration file at the standard location for your
+operating system:
 
-  * **macOS**: `~/Library/Application Support/medi/config.toml`
-  * **Linux**: `~/.config/medi/config.toml`
-  * **Windows**: `C:\Users\<user>\AppData\Roaming\medi\config.toml`
+* **macOS**: `~/Library/Application Support/medi/config.toml`
+* **Linux**: `~/.config/medi/config.toml`
+* **Windows**: `C:\Users\<user>\AppData\Roaming\medi\config.toml`
 
 You can edit this file to customize `medi`'s behaviour.
 
@@ -113,24 +128,24 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
 
   `medi` provides three ways to create a new note:
 
-  1.  **Interactively (default)**: Opens your default editor for long-form content.
-      ```bash
-      medi new "my-long-article"
-      # With tags: Add tags to your note for better organisation.
-      medi new "my-long-article" --tag tag1 --tag tag2
-      # With a title: Specify a title for your note.
-      medi new "my-long-article" --title "My Long Article"
-      ```
+    1. **Interactively (default)**: Opens your default editor for long-form content.
+       ```bash
+       medi new "my-long-article"
+       # With tags: Add tags to your note for better organisation.
+       medi new "my-long-article" --tag tag1 --tag tag2
+       # With a title: Specify a title for your note.
+       medi new "my-long-article" --title "My Long Article"
+       ```
 
-  2.  **With a direct message**: Perfect for quick, one-line notes.
-      ```bash
-      medi new quick-idea -m "Remember to buy milk"
-      ```
+    2. **With a direct message**: Perfect for quick, one-line notes.
+       ```bash
+       medi new quick-idea -m "Remember to buy milk"
+       ```
 
-  3.  **From a pipe**: Use the output of other commands as your note content.
-      ```bash
-      echo "This is a note from a pipe" | medi new piped-note
-      ```
+    3. **From a pipe**: Use the output of other commands as your note content.
+       ```bash
+       echo "This is a note from a pipe" | medi new piped-note
+       ```
 
 * **Edit an existing note**
   ```bash
@@ -145,7 +160,8 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
 
 ### Using Templates 📝
 
-`medi` can create new notes from predefined templates to speed up your workflow. On its first run, `medi` creates an example `meeting.md` template in the configuration directory.
+`medi` can create new notes from predefined templates to speed up your workflow. On its first run, `medi` creates an
+example `meeting.md` template in the configuration directory.
 
 - **Location of templates:**
 
@@ -160,69 +176,71 @@ default_export_dir = "/Users/cladam/Documents/medi_backups"
   ```
 
 - **Create your own templates:**
-  Simply add any `.md` file to your templates directory. If you create `blog.md`, you can use it with `medi new ... --template blog`.
-
+  Simply add any `.md` file to your templates directory. If you create `blog.md`, you can use it with
+  `medi new ... --template blog`.
 
 ### Finding, Viewing & Listing Notes
 
 ⚠️ This feature is not supported on Windows.
 
-  - **Interactively find a note**
-    Open a fuzzy finder to quickly search for and edit a note by its key.
+- **Interactively find a note**
+  Open a fuzzy finder to quickly search for and edit a note by its key.
 
-    ```bash
-    medi find
-    ```
+  ```bash
+  medi find
+  ```
 
-    This will open an interactive TUI to help you find the note you want to edit.
+  This will open an interactive TUI to help you find the note you want to edit.
 
 
-  - **Get a note's content**
-    Prints the note directly to the console. This is perfect for piping to other tools.
+- **Get a note's content**
+  Prints the note directly to the console. This is perfect for piping to other tools.
 
-    ```bash
-    medi get "my-first-article"
+  ```bash
+  medi get "my-first-article"
 
-    # Pipe to a Markdown renderer like mdcat
-    medi get "my-first-article" | mdcat
+  # Pipe to a Markdown renderer like mdcat
+  medi get "my-first-article" | mdcat
 
-    # Get a note in Json format
-    medi get "my-first-article" --json
+  # Get a note in Json format
+  medi get "my-first-article" --json
 
-    # Get one or several notes via a tag
-    medi get --tag my-tag
-    ```
+  # Get one or several notes via a tag
+  medi get --tag my-tag
+  ```
 
-  - **List all notes**
-    The `list` command provides a rich overview of your notes, including their keys and tags.
+- **List all notes**
+  The `list` command provides a rich overview of your notes, including their keys and tags.
 
-    ```bash
-    medi list
-    ```
+  ```bash
+  medi list
+  ```
 
-    *Output:*
+  *Output:*
 
-    ```
-    - cladam_github_io_readme [#blog #project]
-    - medi-blogpost [#rust]
-    ```
+  ```
+  - cladam_github_io_readme [#blog #project]
+  - medi-blogpost [#rust]
+  ```
 
-  - **Sort your notes**
-    You can sort the list by creation or last modification date using the `--sort-by` flag. The default is to sort alphabetically by key.
+- **Sort your notes**
+  You can sort the list by creation or last modification date using the `--sort-by` flag. The default is to sort
+  alphabetically by key.
 
-    ```bash
-    # Sort by the most recently modified notes
-    medi list --sort-by modified
+  ```bash
+  # Sort by the most recently modified notes
+  medi list --sort-by modified
 
-    # Sort by when the notes were created
-    medi list --sort-by created
-    ```
+  # Sort by when the notes were created
+  medi list --sort-by created
+  ```
 
 ### Searching & Indexing
 
 `medi` includes a full-text search engine (`tantivy`) that lets you find notes by their content, title, or tags.
 
 **Search for a note**
+
 ```bash
 # Find all notes containing the word "rust"
 medi search rust
@@ -241,7 +259,8 @@ Search Results:
 
 **Rebuild the search index**
 
-If your search index ever gets out of sync or you're setting up `medi` for the first time with an existing database, you can rebuild the entire index.
+If your search index ever gets out of sync or you're setting up `medi` for the first time with an existing database, you
+can rebuild the entire index.
 
 ```bash
 medi reindex
@@ -298,111 +317,129 @@ medi reindex
 
 `medi` includes a simple task manager to help you turn notes into actionable to-do lists.
 
-  - **Add a task to a note**
+- **Add a task to a note**
 
-    ```bash
-    medi task add my-blog-post "Finish the conclusion section"
-    ```
+  ```bash
+  medi task add my-blog-post "Finish the conclusion section"
+  ```
 
-  - **List all tasks**
-    
-    The list is sorted by priority and status.
+- **List all tasks**
 
-    ```bash
-    medi task list
-    ```
+  The list is sorted by priority and status.
 
-    _Output:_
+  ```bash
+  medi task list
+  ```
 
-    ```
-    Tasks:
-    [42] [Prio] ⭐ : Review final draft (for note 'medi-readme')
-    [43] [Open] : Add usage examples (for note 'medi-readme')
-    [44] [Done] : Write introduction (for note 'my-blog-post')
-    ```
+  _Output:_
 
-  - **Prioritise a task**
+  ```
+  Tasks:
+  [42] [Prio] ⭐ : Review final draft (for note 'medi-readme')
+  [43] [Open] : Add usage examples (for note 'medi-readme')
+  [44] [Done] : Write introduction (for note 'my-blog-post')
+  ```
 
-    ```bash
-    medi task prio 43
-    ```
+- **Prioritise a task**
 
-  - **Complete a task**
+  ```bash
+  medi task prio 43
+  ```
 
-    ```bash
-    medi task done 43
-    ```
+- **Complete a task**
 
-  - **Delete a task**
+  ```bash
+  medi task done 43
+  ```
 
-    ```bash
-    medi task delete 43
-    ```
+- **Delete a task**
 
-  - **Clear all tasks**
-    
-    This is a destructive action
+  ```bash
+  medi task delete 43
+  ```
 
-    ```bash
-    medi task reset
-    ```
+- **Clear all tasks**
 
+  This is a destructive action
+
+  ```bash
+  medi task reset
+  ```
 
 ### Checking Status
 
 The `status` command provides a high-level overview of your database or detailed statistics for a single note.
 
-  - **Get a global overview:**
+- **Get a global overview:**
 
-    ```bash
-    medi status
-    ```
+  ```bash
+  medi status
+  ```
 
-    _Output:_
+  _Output:_
 
-    ```
-    medi status
-      Notes: 42
-      Tasks: 8 open (3 priority)
-    ```
+  ```
+  medi status
+    Notes: 42
+    Tasks: 8 open (3 priority)
+  ```
 
-  - **Get stats for a specific note:**
+- **Get stats for a specific note:**
 
-    ```bash
-    medi status medi-blogpost
-    ```
+  ```bash
+  medi status medi-blogpost
+  ```
 
-    _Output:_
+  _Output:_
 
-    ```
-    medi-blogpost
-      Key: medi-blogpost
-      Tags: rust, cli
-      Words: 584
-      Reading Time: ~3 minute(s)
-      Created: Mon, 12 Sep 2025 10:30:00 +0200
-      Modified: Tue, 13 Sep 2025 15:00:00 +0200
-    ```
+  ```
+  medi-blogpost
+    Key: medi-blogpost
+    Tags: rust, cli
+    Words: 584
+    Reading Time: ~3 minute(s)
+    Created: Mon, 12 Sep 2025 10:30:00 +0200
+    Modified: Tue, 13 Sep 2025 15:00:00 +0200
+  ```
 
 ### Discover Connections
 
-  - **Find backlinks for a note**
-    Discover all the notes that link to a specific topic using `[[wiki-link]]` syntax.
+- **Find backlinks for a note**
+  Discover all the notes that link to a specific topic using `[[wiki-link]]` syntax.
+
+  ```bash
+  medi backlinks rust
+  ```
+
+  _Output:_
+
+  ```
+  Found 1 backlinks for 'rust':
+  - medi-project
+  ```
+
+### Markdown Linting
+
+`medi` can check your notes for common Markdown issues using [`rumdl`](https://github.com/rvben/rumdl).
+
+- **Lint a specific note**
 
     ```bash
-    medi backlinks rust
+    medi lint my-blog-post
     ```
 
-    _Output:_
+- **Lint all notes**
 
+    ```bash
+    medi lint
     ```
-    Found 1 backlinks for 'rust':
-    - medi-project
-    ```
+
+Formatting and fixing the issues is left to your editor or other tools.
 
 ### Shell Completion
 
-To make `medi` even faster to use, you can enable shell completion. Add one of the following lines to your shell's configuration file.
+To make `medi` even faster to use, you can enable shell completion. Add one of the following lines to your shell's
+configuration file.
 
 For Zsh (`~/.zshrc`):
 
@@ -436,6 +473,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Add a Fuzzy Finder for notes
 - [x] Add templates for different documents
 - [x] Wiki-Style Linking
-- [ ] ...
+- [x] Linting of notes
+- [ ] ... your idea here?
 
 

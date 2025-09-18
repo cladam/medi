@@ -1,4 +1,5 @@
 use dialoguer::Error as DialoguerError;
+use rumdl_lib::rule::LintError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -38,6 +39,9 @@ pub enum AppError {
 
     #[error("Self-update error: {0}")]
     SelfUpdate(#[from] self_update::errors::Error),
+
+    #[error("Linting error: {0}")]
+    Lint(#[from] LintError), // Ensure LintError implements From for this to work with
 
     #[error("Search operation failed: {0}")]
     Search(String),

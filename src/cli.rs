@@ -284,6 +284,11 @@ pub enum Commands {
         /// The key of the note to show stats for. (Optional)
         key: Option<String>,
     },
+    /// Run a lint check on all notes.
+    Lint {
+        /// The key of the note to lint. (Optional)
+        key: Option<String>,
+    },
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
     Completion {
