@@ -200,16 +200,14 @@ pub enum Commands {
     // Find the backlink:
     // medi backlinks rust
     ///
-    #[command(
-        after_help = "EXAMPLE:\n  \
+    #[command(after_help = "EXAMPLE:\n  \
     # Create a note that links to another note:\n  \
     medi new medi-project -m \"medi is a CLI tool built in [[rust]].\"\n\n  \
     # Create the target note:\n  \
     medi new rust -m \"A systems programming language.\"\n\n  \
     # Find backlinks: Lists all notes that link to the specified note key.\n  \
     medi backlinks rust\n\n  \
-    # Use this command to discover relationships between your notes and see which notes reference a particular note."
-    )]
+    # Use this command to discover relationships between your notes and see which notes reference a particular note.")]
     Backlinks {
         /// The key of the note to find links for.
         key: String,
