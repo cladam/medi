@@ -19,7 +19,7 @@ anyhow = "1.0.99"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.145"
 toml = "0.9.6"
-rumdl = "0.0.141"
+rumdl = "0.0.144"
 chrono = { version = "0.4.42", features = ["serde"] }
 dialoguer = "0.12.0"
 edit = "0.1.5"
@@ -32,6 +32,10 @@ lazy_static = "1.5.0"
 self_update = "0.42.0"
 crossbeam-channel = "0.5.15"
 regex = "1.11.2"
+eframe = "0.32.3"
+egui = "0.32.3"
+egui_commonmark = { version = "0.21.1", features = ["better_syntax_highlighting", "svg", "fetch"] }
+image = "0.25.8"
 [target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 openssl-sys = { version = "0.9.109", features = ["vendored"] }
 

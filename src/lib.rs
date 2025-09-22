@@ -4,6 +4,7 @@ pub mod config;
 mod db;
 mod error;
 mod note;
+mod preview;
 mod search;
 mod task;
 
@@ -21,6 +22,7 @@ use dialoguer::Confirm;
 use error::AppError;
 use regex::Regex;
 
+use crate::preview::PreviewApp;
 use rumdl_lib::lint;
 #[cfg(unix)]
 use skim::options::SkimOptionsBuilder;
@@ -738,6 +740,26 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
             } else {
                 colours::warn(&format!("\nFound a total of {} issues.", total_issues));
             }
+        }
+        Commands::Preview { key } => {
+            let note = db::get_note(&db, &key)?;
+
+            // Configure the native window options.
+            let native_options = eframe::NativeOptions {
+                viewport: egui::ViewportBuilder::default()
+                    .with_inner_size([800.0, 600.0])
+                    .with_title(format!("Preview: {}", note.title)),
+                ..Default::default()
+            };
+
+            // Start the egui application.
+            // This takes control of the main thread and opens the window.
+            eframe::run_native(
+                "medi Preview",
+                native_options,
+                Box::new(|_cc| Ok(Box::new(PreviewApp::new(note.content)))),
+            )
+            .map_err(|e| AppError::GuiError(e.to_string()))?;
         }
         Commands::Completion { shell } => {
             let mut cmd = cli::Cli::command();

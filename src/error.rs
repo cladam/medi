@@ -54,4 +54,7 @@ pub enum AppError {
 
     #[error("Configuration error: {0}")]
     ConfigError(String),
+
+    #[error("GUI error: {0}")]
+    GuiError(String),
 }

@@ -200,14 +200,16 @@ pub enum Commands {
     // Find the backlink:
     // medi backlinks rust
     ///
-    #[command(after_help = "EXAMPLE:\n  \
+    #[command(
+        after_help = "EXAMPLE:\n  \
     # Create a note that links to another note:\n  \
     medi new medi-project -m \"medi is a CLI tool built in [[rust]].\"\n\n  \
     # Create the target note:\n  \
     medi new rust -m \"A systems programming language.\"\n\n  \
     # Find backlinks: Lists all notes that link to the specified note key.\n  \
     medi backlinks rust\n\n  \
-    # Use this command to discover relationships between your notes and see which notes reference a particular note.")]
+    # Use this command to discover relationships between your notes and see which notes reference a particular note."
+    )]
     Backlinks {
         /// The key of the note to find links for.
         key: String,
@@ -285,9 +287,23 @@ pub enum Commands {
         key: Option<String>,
     },
     /// Run a lint check on all notes.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Lint all notes: Checks all notes for common issues.\n  \
+    medi lint\n\n  \
+    # Lint a specific note: Checks the note with the specified key for issues.\n  \
+    medi lint --key my-note")]
     Lint {
         /// The key of the note to lint. (Optional)
         key: Option<String>,
+    },
+    ///Render a note in a live preview.
+    #[command(after_help = "EXAMPLE:\n  \
+    # Render a note: Opens a live preview of the note in your default web browser.\n  \
+    medi preview my-note\n\n  \
+    # Use this command to quickly view how your Markdown note will look when rendered.")]
+    Preview {
+        /// The key of the note to render.
+        key: String,
     },
     /// Generates shell completion scripts.
     #[command(name = "generate-completion", hide = true)] // Hidden from help
