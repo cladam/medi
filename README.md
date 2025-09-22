@@ -436,6 +436,16 @@ The `status` command provides a high-level overview of your database or detailed
 
 Formatting and fixing the issues is left to your editor or other tools.
 
+### Markdown Preview
+
+`medi` includes a simple preview mode using `egui` to render your Markdown notes in a window.
+
+- **Preview a note**
+
+  ```bash
+  medi preview my-blog-post
+  ```
+
 ### Shell Completion
 
 To make `medi` even faster to use, you can enable shell completion. Add one of the following lines to your shell's
@@ -474,6 +484,7 @@ This section tracks the implementation status of `medi`'s features. Contribution
 - [x] Add templates for different documents
 - [x] Wiki-Style Linking
 - [x] Linting of notes
+- [x] A preview mode using egui
 - [ ] ... your idea here?
 
 
