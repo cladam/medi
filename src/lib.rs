@@ -469,27 +469,35 @@ pub fn run(cli: Cli, config: Config) -> Result<(), AppError> {
         }
         Commands::Import(args) => {
             // This is a helper closure to handle the logic for a single file.
+
             let handle_import = |key: &str, content: &str| -> Result<(), AppError> {
-                let note_exists = db::key_exists(&db, key)?;
+                if let Ok(existing_note) = db::get_note(&db, key) {
+                    if !args.overwrite {
+                        colours::warn(&format!("Skipped '{}' (already exists)", key));
+                        return Ok(());
+                    }
+                    // Preserve tags and creation date, update content and modified date
+                    let mut updated_note = existing_note;
+                    updated_note.content = content.to_string();
+                    updated_note.modified_at = Utc::now();
 
-                if note_exists && !args.overwrite {
-                    colours::warn(&format!("Skipped '{}' (already exists)", key));
-                    return Ok(());
+                    db::save_note_with_index(&db, &updated_note, &search_index)?;
+                    colours::success(&format!("Updated '{}'", key));
+                } else {
+                    // Create a new Note struct from the imported file content.
+                    let new_note = Note {
+                        key: key.to_string(),
+                        title: key.to_string(), // Default title to the key
+                        tags: vec![],           // Default to no tags
+                        content: content.to_string(),
+                        created_at: Utc::now(),
+                        modified_at: Utc::now(),
+                    };
+
+                    // Save the complete Note object.
+                    db::save_note(&db, &new_note)?;
+                    colours::success(&format!("Imported '{}'", key));
                 }
-
-                // Create a new Note struct from the imported file content.
-                let new_note = Note {
-                    key: key.to_string(),
-                    title: key.to_string(), // Default title to the key
-                    tags: vec![],           // Default to no tags
-                    content: content.to_string(),
-                    created_at: Utc::now(),
-                    modified_at: Utc::now(),
-                };
-
-                // Save the complete Note object.
-                db::save_note(&db, &new_note)?;
-                colours::success(&format!("Imported '{}'", key));
                 Ok(())
             };
 
